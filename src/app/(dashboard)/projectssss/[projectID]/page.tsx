@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Film, Plus, Search, Filter, Calendar, Clock, Users, FileText, 

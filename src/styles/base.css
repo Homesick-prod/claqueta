@@ -1,0 +1,58 @@
+/* Light reset + base typography + containers */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  color: var(--neutral-900);
+  background: var(--bg-gradient);
+}
+
+/* Container utilities matching legacy max-w-7xl */
+.container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Focus utilities for accessibility */
+.focus-ring:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Button reset */
+button {
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Input reset */
+input, select, textarea {
+  font: inherit;
+}
+
+/* Tabular numerals for counters like legacy */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Line clamp utilities from legacy */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

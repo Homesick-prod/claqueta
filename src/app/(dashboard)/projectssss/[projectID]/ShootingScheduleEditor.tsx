@@ -9,13 +9,13 @@ import {
   FileDown, CloudRain, ListPlus, Search, Layers, Github, ArrowLeft, Users, MapPin, Sunrise, Sunset, Thermometer,
   CloudDrizzle, Coffee, Moon, Loader2, Check, CloudOff, Image as ImageIcon, X, Minus, ChevronsRight, AlertTriangle
 } from 'lucide-react';
-import { generateId } from '../utils/id';
-import { calculateEndTime, calculateDuration } from '../utils/time';
-import { exportProject } from '../utils/file';
-import { exportToPDF } from '../utils/pdf';
-import { getImage } from '../utils/db'; // Import db helper
-import { StorageManager } from '../utils/storage';
-import Footer from './Footer';
+//import { generateId } from '../utils/id';
+//import { calculateEndTime, calculateDuration } from '../utils/time';
+//import { exportProject } from '../utils/file';
+//import { exportToPDF } from '../utils/pdf';
+//import { getImage } from '../utils/db'; // Import db helper
+//import { StorageManager } from '../utils/storage';
+//import Footer from './Footer';
 
 // Save status indicator component
 function SaveStatusIndicator({ status }) {

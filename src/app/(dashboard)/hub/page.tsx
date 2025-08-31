@@ -1,124 +1,133 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-
-// Services & types
-import { loadProjects, searchFilterSort, ALLOWED_SLOTS } from "@/lib/projects-local";
-import type { Project, ProjectFilter, ProjectSort } from "@/types/domain";
-import { buildProjectPath, buildShotlistPath, buildSchedulePath, buildCallsheetPath } from "@/lib/paths";
-
-// Hub components (assumed default exports)
-import Toolbar from "@/features/hub/components/Toolbar";
-import UsageBar from "@/features/hub/components/UsageBar";
-import ProjectGrid from "@/features/hub/components/ProjectGrid";
-import ManageSlotsModal from "@/features/hub/components/ManageSlotsModal";
-import NewProjectModal from "@/features/hub/components/NewProjectModal";
-import ImportProject from "@/features/hub/components/ImportProject";
-import EmptyState from "@/features/hub/components/EmptyState";
+import React, { useState, useEffect } from 'react';
+import AppBar from '@/features/hub/components/AppBar';
+import ControlsBar from '@/features/hub/components/ControlsBar';
+import UsageBar from '@/features/hub/components/UsageBar';
+import ProjectGrid from '@/features/hub/components/ProjectGrid';
+import NewProjectModal from '@/features/hub/components/NewProjectModal';
+import ImportProject from '@/features/hub/components/ImportProject';
+import ManageSlotsModal from '@/features/hub/components/ManageSlotsModal';
+import SettingsFAB from '@/features/hub/components/SettingsFAB';
+import { Project } from '@/types/domain';
+import {
+  getProjects,
+  searchProjects,
+  filterProjects,
+  sortProjects,
+} from '@/lib/projects-local';
 
 export default function HubPage() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<ProjectFilter>("all");
-  const [sort, setSort] = useState<ProjectSort>("recent");
-
-  // Modals
-  const [showManage, setShowManage] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showImport, setShowImport] = useState(false);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState<'all' | 'active' | 'archived' | 'favorites'>('all');
+  const [sortBy, setSortBy] = useState<'recent' | 'name'>('recent');
+  const [showNewModal, setShowNewModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
 
   useEffect(() => {
-    setProjects(loadProjects());
-    // เผื่อมีการแก้ไขจากแท็บอื่น
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "filmProductionProjects") setProjects(loadProjects());
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    const loaded = getProjects();
+    setProjects(loaded);
+    setFilteredProjects(loaded);
   }, []);
 
-  const activeCount = useMemo(() => projects.filter(p => p.active && !p.archived).length, [projects]);
-  const allowed = ALLOWED_SLOTS;
+  useEffect(() => {
+    let result = [...projects];
+    
+    if (searchQuery) {
+      result = searchProjects(result, searchQuery);
+    }
+    
+    result = filterProjects(result, filter);
+    result = sortProjects(result, sortBy);
+    
+    setFilteredProjects(result);
+  }, [projects, searchQuery, filter, sortBy]);
 
-  const visible = useMemo(
-    () => searchFilterSort(projects, q, filter, sort),
-    [projects, q, filter, sort]
-  );
+  const handleProjectsUpdate = (updated: Project[]) => {
+    setProjects(updated);
+  };
 
-  // หลังปิดโมดัลให้ refresh รายการ
-  const refresh = () => setProjects(loadProjects());
+  const activeCount = projects.filter(p => p.active && !p.archived).length;
+  const hasProjects = projects.length > 0;
 
   return (
-    <main style={{ background: "var(--neutral-900)", color: "white", minHeight: "100vh" }}>
-      {/* Top bar */}
-      <div style={{ position: "sticky", top: 0, zIndex: 20, borderBottom: "1px solid var(--neutral-700)", background: "var(--neutral-900)" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ fontWeight: 600, letterSpacing: 0.2 }}>Claqueta</div>
-          <div style={{ flex: 1 }}>
-            <Toolbar
-              query={q}
-              onQueryChange={setQ}
-              filter={filter}
-              onFilterChange={setFilter}
-              sort={sort}
-              onSortChange={setSort}
-              onNewClick={() => setShowNew(true)}
-              onImportClick={() => setShowImport(true)}
-              onTemplatesClick={() => {/* TODO: template picker */}}
-            />
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {/* เผื่อพื้นที่ Avatar / Sign in (ภายหลัง) */}
-          </div>
-        </div>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "6px 20px 12px" }}>
-          <UsageBar activeCount={activeCount} allowed={allowed} onManage={() => setShowManage(true)} />
+    <div className="relative min-h-screen bg-[var(--page-bg)] page-decor">
+      <AppBar />
+      
+      <div className="relative pt-16 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          {hasProjects ? (
+            <>
+              <ControlsBar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                filter={filter}
+                onFilterChange={setFilter}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                onImport={() => setShowImportModal(true)}
+              />
+              
+              <UsageBar
+                activeCount={activeCount}
+                onManage={() => setShowManageModal(true)}
+              />
+              
+              <ProjectGrid
+                projects={filteredProjects}
+                onProjectsUpdate={handleProjectsUpdate}
+                onNewProject={() => setShowNewModal(true)}
+              />
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+              <div className="w-24 h-24 rounded-full bg-[var(--brand)] bg-opacity-10 flex items-center justify-center mb-6">
+                <svg className="w-12 h-12 text-[var(--brand)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4" />
+                </svg>
+              </div>
+              
+              <h2 className="text-2xl font-semibold mb-3">Welcome to Claqueta</h2>
+              <p className="text-[var(--text-muted)] max-w-md mb-8">
+                Start managing your film production projects. Create a new project from a template or import an existing one.
+              </p>
+              
+              <div className="flex gap-4">
+                <button onClick={() => setShowNewModal(true)} className="btn btn-primary">
+                  Create from template
+                </button>
+                <button onClick={() => setShowImportModal(true)} className="btn btn-secondary">
+                  Import
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Content */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px" }}>
-        {visible.length === 0 ? (
-          <EmptyState
-            onCreateTemplate={() => setShowNew(true)}
-            onImport={() => setShowImport(true)}
-          />
-        ) : (
-          <ProjectGrid
-            projects={visible}
-            // ลิงก์ด่วนไปหน้าในโปรเจกต์
-            buildOpen={(id) => buildProjectPath(id)}
-            buildShotlist={(id) => buildShotlistPath(id)}
-            buildSchedule={(id) => buildSchedulePath(id)}
-            buildCallsheet={(id) => buildCallsheetPath(id)}
-            onAfterAction={refresh}
-          />
-        )}
-      </div>
-
-      {/* Modals */}
-      {showManage && (
-        <ManageSlotsModal
-          open={showManage}
-          onClose={() => setShowManage(false)}
-          onChanged={refresh}
-        />
-      )}
-      {showNew && (
-        <NewProjectModal
-          open={showNew}
-          onClose={() => setShowNew(false)}
-          onCreated={refresh}
-        />
-      )}
-      {showImport && (
-        <ImportProject
-          open={showImport}
-          onClose={() => setShowImport(false)}
-          onImported={refresh}
-        />
-      )}
-    </main>
+      
+      <SettingsFAB />
+      
+      <NewProjectModal
+        isOpen={showNewModal}
+        onClose={() => setShowNewModal(false)}
+        onProjectsUpdate={handleProjectsUpdate}
+      />
+      
+      <ImportProject
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onProjectsUpdate={handleProjectsUpdate}
+      />
+      
+      <ManageSlotsModal
+        isOpen={showManageModal}
+        onClose={() => setShowManageModal(false)}
+        projects={projects}
+        onProjectsUpdate={handleProjectsUpdate}
+      />
+    </div>
   );
 }

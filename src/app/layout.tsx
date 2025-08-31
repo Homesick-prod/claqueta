@@ -1,26 +1,26 @@
-import type { Metadata } from "next";
-import "@/styles/tokens.css"; // design tokens (สี/spacing/radius/สถานะ)
-// ถ้ามี globals.css ของคุณเองอยู่แล้ว สามารถ import ต่อท้ายได้ เช่น:
-// import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import ThemeScript from '../components/ThemeScript';
+import '../styles/tw.css';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Claqueta",
-  description: "Film-grade pre-production hub: shotlist, stripboard, call sheet.",
+  title: 'Claqueta',
+  description: 'Film production management',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="th">
-      <body
-        style={{
-          margin: 0,
-          background: "var(--neutral-900)",
-          color: "white",
-          fontFamily: "var(--font-th, var(--font-en, system-ui, -apple-system, sans-serif))",
-          WebkitFontSmoothing: "antialiased",
-          MozOsxFontSmoothing: "grayscale",
-        }}
-      >
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
+      <body className={`${inter.className} antialiased bg-[var(--page-bg)] text-[var(--text)]`}>
         {children}
       </body>
     </html>

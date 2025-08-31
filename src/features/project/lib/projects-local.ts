@@ -1,5 +1,4 @@
-import { Project, Phase } from '@/types/domain';
-import { Member, Role, PendingInvite } from '@/features/project/types';
+import { Project, Phase, Member, Role, PendingInvite } from '../types';
 
 const STORAGE_KEY = 'filmProductionProjects';
 const MEMBERS_KEY = 'filmProductionMembers';

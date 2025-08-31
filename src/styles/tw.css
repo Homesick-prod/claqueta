@@ -1,0 +1,255 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand colors */
+    --brand: #4CA18A;
+    --brand-700: #3A8F79;
+    --accent: #FAAA39;
+    
+    /* Dark theme (default) */
+    --neutral-900: #0E1014;
+    --neutral-850: #161B21;
+    --neutral-800: #1A1F26;
+    --neutral-700: #2A313A;
+    --neutral-500: #8A939F;
+    --neutral-300: #DCE1E7;
+    --neutral-100: #F6F8FA;
+    
+    /* Theme variables */
+    --page-bg: var(--neutral-900);
+    --surface: var(--neutral-800);
+    --border: var(--neutral-700);
+    --text: var(--neutral-100);
+    --text-muted: var(--neutral-500);
+    
+    /* Layout */
+    --radius: 12px;
+    --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.35);
+    
+    /* Density - Cozy by default */
+    --grid-gap: 32px;
+    --card-pad: 20px;
+  }
+  
+  [data-theme="light"] {
+    --page-bg: #FFFFFF;
+    --surface: #FFFFFF;
+    --border: #E3E7EC;
+    --text: #0E1014;
+    --text-muted: #8A939F;
+  }
+  
+  [data-density="compact"] {
+    --grid-gap: 16px;
+    --card-pad: 16px;
+  }
+  
+  [data-reduce-motion="true"] * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  .topbar {
+    @apply fixed top-0 left-0 right-0 z-40 h-16;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
+    @apply transition-all duration-200;
+  }
+  
+  .card:hover {
+    @apply scale-[1.02];
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    border-color: var(--brand);
+  }
+  
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors duration-150 focus:outline-none focus:ring-2;
+    focus-ring-color: var(--brand);
+  }
+  
+  .btn-primary {
+    background-color: var(--brand);
+    @apply text-white;
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--brand-700);
+  }
+  
+  .btn-secondary {
+    background-color: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  
+  .btn-secondary:hover {
+    background-color: var(--neutral-700);
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent;
+    color: var(--text);
+  }
+  
+  .btn-ghost:hover {
+    background-color: rgba(42, 49, 58, 0.2);
+  }
+  
+  .input {
+    @apply w-full px-4 py-2 rounded-lg transition-colors;
+    background-color: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  
+  .input::placeholder {
+    color: var(--text-muted);
+  }
+  
+  .input:focus {
+    @apply outline-none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(76, 161, 138, 0.2);
+  }
+  
+  /* Fixed Settings segment styles */
+  .segment {
+    @apply inline-flex p-1 rounded-lg;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+  }
+  
+  .segment-item {
+    @apply px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer;
+    color: var(--text-muted);
+    background-color: transparent;
+  }
+  
+  .segment-item:hover:not(.segment-item-active) {
+    background-color: rgba(42, 49, 58, 0.1);
+  }
+  
+  .segment-item-active {
+    background-color: var(--brand);
+    color: #ffffff;
+    @apply shadow-sm;
+  }
+  
+  [data-theme="light"] .segment-item-active {
+    color: #0E1014;
+  }
+  
+  /* Create tile styles */
+  .tile-create {
+    @apply min-h-[200px] flex flex-col items-center justify-center gap-3 cursor-pointer transition-all;
+    background-color: var(--surface);
+    border: 2px dashed;
+    border-color: rgba(42, 49, 58, 0.3);
+    border-radius: var(--radius);
+  }
+  
+  .tile-create:hover {
+    @apply scale-[1.02];
+    border-color: var(--brand);
+    box-shadow: 0 4px 16px rgba(76, 161, 138, 0.2);
+  }
+  
+  .tile-create:focus {
+    @apply outline-none ring-2;
+    ring-color: var(--brand);
+  }
+  
+  .tile-icon {
+    @apply w-12 h-12 rounded-full flex items-center justify-center;
+    background-color: rgba(76, 161, 138, 0.15);
+  }
+  
+  .tile-label {
+    color: var(--text-muted);
+    @apply text-sm font-medium;
+  }
+  
+  /* Background pattern */
+  .page-decor {
+    @apply relative;
+  }
+  
+  .page-decor::before {
+    content: '';
+    @apply fixed inset-0 pointer-events-none;
+    z-index: 0;
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(76, 161, 138, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(250, 170, 57, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 40% 20%, rgba(76, 161, 138, 0.03) 0%, transparent 40%),
+      radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 20px 20px;
+  }
+  
+  [data-theme="light"] .page-decor::before {
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(76, 161, 138, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(250, 170, 57, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 40% 20%, rgba(76, 161, 138, 0.02) 0%, transparent 40%),
+      radial-gradient(circle at 2px 2px, rgba(14, 16, 20, 0.06) 1px, transparent 1px);
+  }
+  
+  .chip {
+    @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full border;
+  }
+  
+  .chip-pre {
+    @apply chip;
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+  
+  .chip-prod {
+    @apply chip;
+    background-color: rgba(76, 161, 138, 0.1);
+    color: var(--brand);
+    border-color: rgba(76, 161, 138, 0.3);
+  }
+  
+  .chip-wrap {
+    @apply chip;
+    background-color: rgba(250, 170, 57, 0.1);
+    color: var(--accent);
+    border-color: rgba(250, 170, 57, 0.3);
+  }
+  
+  .menu {
+    @apply absolute z-50 min-w-[180px] py-1 rounded-lg shadow-xl;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+  }
+  
+  .menu-item {
+    @apply w-full px-3 py-2 text-sm transition-colors text-left;
+    color: var(--text);
+  }
+  
+  .menu-item:hover {
+    background-color: rgba(42, 49, 58, 0.2);
+  }
+}
+
+@layer utilities {
+  .text-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
