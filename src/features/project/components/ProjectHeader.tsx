@@ -42,13 +42,13 @@ export default function ProjectHeader({ projectId }: ProjectHeaderProps) {
   const getPhaseStyles = () => {
     switch (phase) {
       case 'pre':
-        return 'bg-gradient-to-r from-blue-600/20 to-blue-500/10 text-blue-400 border border-blue-500/20 shadow-blue-500/10';
+        return 'bg-[var(--accent-600)]/15 text-[var(--accent-400)]';
       case 'prod':
-        return 'bg-gradient-to-r from-[var(--brand)]/20 to-[var(--brand)]/10 text-[var(--brand)] border border-[var(--brand)]/20 shadow-[var(--brand)]/10';
+        return 'bg-[var(--accent-600)]/15 text-[var(--accent-400)]';
       case 'wrap':
-        return 'bg-gradient-to-r from-orange-600/20 to-orange-500/10 text-orange-400 border border-orange-500/20 shadow-orange-500/10';
+        return 'bg-[var(--accent-600)]/15 text-[var(--accent-400)]';
       default:
-        return 'bg-gradient-to-r from-blue-600/20 to-blue-500/10 text-blue-400 border border-blue-500/20';
+        return 'bg-[var(--accent-600)]/15 text-[var(--accent-400)]';
     }
   };
 
@@ -58,8 +58,7 @@ export default function ProjectHeader({ projectId }: ProjectHeaderProps) {
         {projectName}
       </h1>
       <span className={`
-        px-3 py-1 text-xs font-medium rounded-full 
-        shadow-sm transition-all duration-300 hover:shadow-md
+        px-3 py-1 text-xs font-medium rounded-full transition-all duration-300
         ${getPhaseStyles()}
       `}>
         {getPhaseLabel()}

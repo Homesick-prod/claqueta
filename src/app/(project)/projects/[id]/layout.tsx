@@ -34,7 +34,6 @@ export default function ProjectLayout({
     };
 
     const handleStorageChange = () => {
-      // Sync collapsed state when changed from sidebar
       const stored = localStorage.getItem('projectSidebarCollapsed');
       if (stored !== null) {
         setCollapsed(JSON.parse(stored));
@@ -63,8 +62,7 @@ export default function ProjectLayout({
       )}
 
       {/* Top Bar */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-[var(--surface)] backdrop-blur-xl bg-opacity-95 dark:bg-opacity-90 border-b border-[var(--neutral-800)]/30 dark:border-[var(--neutral-800)] z-30 flex items-center px-4 shadow-sm">
-        {/* Subtle gradient overlay */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-[var(--surface)] backdrop-blur-xl bg-opacity-95 dark:bg-opacity-90 border-b border-[var(--border)] z-30 flex items-center px-4 shadow-sm">
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--brand)]/[0.02] via-transparent to-[var(--accent)]/[0.02] pointer-events-none" />
         
         <div className="relative flex items-center gap-4 flex-1">
@@ -98,16 +96,15 @@ export default function ProjectLayout({
         className={`
           fixed lg:relative top-16 left-0 h-[calc(100vh-4rem)] 
           bg-[var(--surface)] backdrop-blur-xl bg-opacity-95 dark:bg-opacity-100
-          border-r border-[var(--neutral-800)]/30 dark:border-[var(--neutral-800)]
+          border-r border-[var(--border)]
           shadow-xl lg:shadow-md
-          shrink-0 transition-all duration-500 ease-out z-40
+          shrink-0 transition-[width] duration-500 ease-out z-40
           ${collapsed ? 'w-16' : 'w-64'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
         role={mobileOpen ? 'dialog' : undefined}
         aria-label="Project navigation"
       >
-        {/* Subtle gradient overlay for sidebar */}
         <div className="absolute inset-0 bg-gradient-to-b from-[var(--brand)]/[0.02] via-transparent to-[var(--accent)]/[0.02] pointer-events-none" />
         <Sidebar projectId={resolvedParams.id} collapsed={collapsed} />
       </aside>
