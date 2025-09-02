@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { CallSheetPage } from '../model';
 import { getMembers } from '@/lib/projects-local';
 import { Member } from '@/features/project/types';
+import TimePicker from './TimePicker';
 
 interface CrewPanelProps {
   page: CallSheetPage;
@@ -31,14 +32,20 @@ const DEFAULT_DEPARTMENTS = [
 ];
 
 export default function CrewPanel({ page, onUpdate, projectId }: CrewPanelProps) {
-  const [expandedDepts, setExpandedDepts] = useState<Set<string>>(new Set(['direction', 'camera']));
+  const [expandedDepts, setExpandedDepts] = useState<Set<string>>(new Set(DEFAULT_DEPARTMENTS.map(d => d.id)));
   const [projectMembers, setProjectMembers] = useState<Member[]>([]);
   const [showMemberSelect, setShowMemberSelect] = useState<string | null>(null);
 
   // Load project members on mount
   useEffect(() => {
-    const members = getMembers(projectId);
-    setProjectMembers(members);
+    try {
+      const members = getMembers(projectId);
+      console.log('Loaded project members:', members); // Debug log
+      setProjectMembers(members);
+    } catch (error) {
+      console.error('Error loading project members:', error);
+      setProjectMembers([]);
+    }
   }, [projectId]);
 
   // Initialize departments if empty
@@ -145,47 +152,73 @@ export default function CrewPanel({ page, onUpdate, projectId }: CrewPanelProps)
   const addAllMembers = () => {
     const crewByDept = [...page.crewByDept];
     
-    // Group project members by department
-    const membersByDept: { [key: string]: Member[] } = {};
-    projectMembers.forEach(member => {
-      if (member.department) {
-        const deptId = member.department.toLowerCase().replace(/[^a-z]/g, '');
-        if (!membersByDept[deptId]) membersByDept[deptId] = [];
-        membersByDept[deptId].push(member);
-      } else {
-        // Add to production if no specific department
-        if (!membersByDept['production']) membersByDept['production'] = [];
-        membersByDept['production'].push(member);
-      }
-    });
+    console.log('Adding all members. Total contacts:', projectMembers.length); // Debug
     
-    // Add members to matching departments
-    crewByDept.forEach((dept, deptIndex) => {
-      const deptMembers = membersByDept[dept.deptId] || [];
-      deptMembers.forEach(member => {
-        // Check if member already exists
-        const exists = dept.members.some(m => m.contactId === member.id);
-        if (!exists) {
-          dept.members.push({
+    // Add all members to production department for now, then we can move them
+    const productionDeptIndex = crewByDept.findIndex(dept => dept.deptId === 'production');
+    
+    if (productionDeptIndex !== -1) {
+      projectMembers.forEach(member => {
+        // Check if member already exists anywhere
+        const alreadyExists = crewByDept.some(dept => 
+          dept.members.some(m => m.contactId === member.id)
+        );
+        
+        if (!alreadyExists) {
+          console.log('Adding member:', member.name, member.department); // Debug
+          crewByDept[productionDeptIndex].members.push({
             contactId: member.id,
             name: member.name,
-            position: member.title || member.department || '',
-            callTime: dept.deptCall || '',
-            note: '',
+            position: member.title || member.department || 'Team Member',
+            callTime: crewByDept[productionDeptIndex].deptCall || '',
+            note: member.department ? `From ${member.department}` : '',
           });
         }
       });
-    });
+    }
     
+    console.log('Updated crew departments:', crewByDept); // Debug
     onUpdate({ crewByDept });
   };
 
-  const getDepartmentMembers = (deptId: string) => {
-    return projectMembers.filter(member => {
-      if (!member.department) return deptId === 'production';
-      const memberDeptId = member.department.toLowerCase().replace(/[^a-z]/g, '');
-      return memberDeptId === deptId;
+  const getDepartmentMembers = (deptId: string, deptName: string) => {
+    console.log(`Getting members for dept: ${deptId} (${deptName})`); // Debug
+    console.log('All project members:', projectMembers); // Debug
+    
+    // Return all members for now to test - we'll filter later
+    const filtered = projectMembers.filter(member => {
+      // For debugging, let's see all members
+      console.log(`Member: ${member.name}, Department: ${member.department}, Title: ${member.title}`);
+      
+      // If no department specified, add to production
+      if (!member.department && !member.title) {
+        return deptId === 'production';
+      }
+      
+      // Simple keyword matching for now
+      const memberInfo = `${member.department || ''} ${member.title || ''}`.toLowerCase();
+      const searchTerms = [
+        deptId,
+        deptName.toLowerCase(),
+        ...deptName.toLowerCase().split('/'),
+        ...deptName.toLowerCase().split('&'),
+      ];
+      
+      // Check if any search term matches
+      return searchTerms.some(term => 
+        memberInfo.includes(term) || 
+        term.includes(memberInfo.split(' ')[0]) ||
+        // Special cases
+        (deptId === 'camera' && (memberInfo.includes('dop') || memberInfo.includes('cinematograph'))) ||
+        (deptId === 'sound' && memberInfo.includes('audio')) ||
+        (deptId === 'makeup' && (memberInfo.includes('hair') || memberInfo.includes('mu'))) ||
+        (deptId === 'wardrobe' && (memberInfo.includes('costume') || memberInfo.includes('styling'))) ||
+        (deptId === 'script' && (memberInfo.includes('continuity') || memberInfo.includes('supervisor')))
+      );
     });
+    
+    console.log(`Found ${filtered.length} members for ${deptName}:`, filtered.map(m => m.name)); // Debug
+    return filtered;
   };
 
   const isDeptCallActive = (dept: any) => {
@@ -214,7 +247,7 @@ export default function CrewPanel({ page, onUpdate, projectId }: CrewPanelProps)
       <div className="space-y-4">
         {page.crewByDept.map((dept, deptIndex) => {
           const isExpanded = expandedDepts.has(dept.deptId);
-          const availableMembers = getDepartmentMembers(dept.deptId);
+          const availableMembers = getDepartmentMembers(dept.deptId, dept.deptName);
           const isCallActive = isDeptCallActive(dept);
           
           return (
@@ -239,15 +272,19 @@ export default function CrewPanel({ page, onUpdate, projectId }: CrewPanelProps)
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-[var(--text-muted)]" />
                       <label className="text-sm text-[var(--text-muted)]">Dept Call:</label>
-                      <div className="w-24">
-                        <input
-                          type="time"
+                      <div className="w-32">
+                        <TimePicker
                           value={dept.deptCall || ''}
-                          onChange={(e) => updateDepartmentCall(deptIndex, e.target.value)}
+                          onChange={(time) => updateDepartmentCall(deptIndex, time)}
+                          placeholder="Set time"
                           disabled={!isCallActive}
-                          className="input"
                         />
                       </div>
+                      {!isCallActive && (
+                        <span className="text-xs text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-1 rounded">
+                          Mixed times
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -268,35 +305,62 @@ export default function CrewPanel({ page, onUpdate, projectId }: CrewPanelProps)
                       </button>
                       
                       {showMemberSelect === dept.deptId && (
-                        <div className="absolute top-full right-0 mt-2 w-64 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg z-10">
-                          <div className="p-3">
-                            <div className="text-sm font-medium mb-2">Add from Contacts</div>
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg z-20">
+                          <div className="p-4">
+                            <div className="text-sm font-medium mb-3">Add from Project Contacts</div>
                             {availableMembers.length > 0 ? (
-                              <div className="space-y-1 mb-3 max-h-32 overflow-y-auto">
-                                {availableMembers.map(member => (
-                                  <button
-                                    key={member.id}
-                                    onClick={() => addCrewMember(deptIndex, member)}
-                                    className="w-full text-left p-2 text-sm hover:bg-[var(--neutral-700)]/20 rounded"
-                                  >
-                                    <div className="font-medium">{member.name}</div>
-                                    {member.title && (
-                                      <div className="text-xs text-[var(--text-muted)]">{member.title}</div>
-                                    )}
-                                  </button>
-                                ))}
+                              <div className="space-y-2 mb-4 max-h-48 overflow-y-auto custom-scrollbar">
+                                {availableMembers.map(member => {
+                                  const isAlreadyAdded = dept.members.some(m => m.contactId === member.id);
+                                  return (
+                                    <button
+                                      key={member.id}
+                                      onClick={() => !isAlreadyAdded && addCrewMember(deptIndex, member)}
+                                      disabled={isAlreadyAdded}
+                                      className={`w-full text-left p-3 text-sm rounded border transition-colors ${
+                                        isAlreadyAdded
+                                          ? 'opacity-50 cursor-not-allowed bg-[var(--neutral-700)]/10'
+                                          : 'hover:bg-[var(--brand)]/10 hover:border-[var(--brand)] border-[var(--border)]'
+                                      }`}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <div className="font-medium">{member.name}</div>
+                                          <div className="text-xs text-[var(--text-muted)] mt-1">
+                                            {member.department && <span>{member.department}</span>}
+                                            {member.title && <span> • {member.title}</span>}
+                                            {member.email && <span> • {member.email}</span>}
+                                          </div>
+                                        </div>
+                                        {isAlreadyAdded && (
+                                          <span className="text-xs text-[var(--brand)] font-medium">Added</span>
+                                        )}
+                                      </div>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             ) : (
-                              <div className="text-sm text-[var(--text-muted)] mb-3">
-                                No contacts in this department
+                              <div className="text-sm text-[var(--text-muted)] mb-4 p-3 bg-[var(--neutral-700)]/10 rounded">
+                                No contacts found for this department.
+                                <br />
+                                <span className="text-xs">
+                                  Total contacts available: {projectMembers.length}
+                                  <br />
+                                  Try "Add All Members" to see all contacts, or use "Add Manual Entry" below.
+                                </span>
                               </div>
                             )}
-                            <button
-                              onClick={() => addCrewMember(deptIndex)}
-                              className="w-full btn btn-secondary btn-sm"
-                            >
-                              Add Manual Entry
-                            </button>
+                            
+                            <div className="border-t border-[var(--border)] pt-3">
+                              <button
+                                onClick={() => addCrewMember(deptIndex)}
+                                className="w-full btn btn-secondary btn-sm"
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Manual Entry
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -331,11 +395,10 @@ export default function CrewPanel({ page, onUpdate, projectId }: CrewPanelProps)
                             </div>
                             <div>
                               <label className="block text-sm font-medium mb-1">Call Time</label>
-                              <input
-                                type="time"
+                              <TimePicker
                                 value={member.callTime || ''}
-                                onChange={(e) => updateCrewMember(deptIndex, memberIndex, 'callTime', e.target.value)}
-                                className="input w-full"
+                                onChange={(time) => updateCrewMember(deptIndex, memberIndex, 'callTime', time)}
+                                placeholder="Set time"
                               />
                             </div>
                             <div className="flex gap-2">
@@ -361,8 +424,9 @@ export default function CrewPanel({ page, onUpdate, projectId }: CrewPanelProps)
                             </div>
                           </div>
                           {member.contactId && (
-                            <div className="mt-2 text-xs text-[var(--brand)]">
-                              ✓ From project contacts
+                            <div className="mt-2 text-xs text-[var(--brand)] flex items-center gap-1">
+                              <span className="w-2 h-2 bg-[var(--brand)] rounded-full"></span>
+                              From project contacts
                             </div>
                           )}
                         </div>
@@ -371,10 +435,15 @@ export default function CrewPanel({ page, onUpdate, projectId }: CrewPanelProps)
                   ) : (
                     <div className="text-center py-8 text-[var(--text-muted)]">
                       <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-sm">No crew members in this department yet</p>
+                      <p className="text-sm mb-2">No crew members in {dept.deptName} yet</p>
+                      {availableMembers.length > 0 && (
+                        <p className="text-xs mb-3">
+                          {availableMembers.length} contact{availableMembers.length !== 1 ? 's' : ''} available from this department
+                        </p>
+                      )}
                       <button
                         onClick={() => setShowMemberSelect(dept.deptId)}
-                        className="btn btn-secondary btn-sm mt-2"
+                        className="btn btn-secondary btn-sm"
                       >
                         Add First Member
                       </button>
@@ -389,11 +458,12 @@ export default function CrewPanel({ page, onUpdate, projectId }: CrewPanelProps)
 
       {/* Info Box */}
       <div className="p-4 bg-[var(--brand)]/10 border border-[var(--brand)]/20 rounded-lg">
-        <h4 className="font-medium text-[var(--brand)] mb-2">Smart Call Time Sync</h4>
+        <h4 className="font-medium text-[var(--brand)] mb-2">Smart Crew Management</h4>
         <div className="text-sm text-[var(--text-muted)] space-y-1">
-          <p>• Set department call time to apply to all members</p>
-          <p>• Individual changes disable department sync until times match</p>
-          <p>• Use "Add All Members" to quickly import from your project contacts</p>
+          <p>• Set department call time to apply to all members instantly</p>
+          <p>• Individual time changes disable department sync (shown as "Mixed times")</p>
+          <p>• "Add All Members" imports all contacts from your project</p>
+          <p>• Contacts are automatically matched to departments</p>
         </div>
       </div>
     </div>

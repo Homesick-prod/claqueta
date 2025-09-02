@@ -2,6 +2,8 @@
 
 import { Building, MapPin, Cloud, Calendar, Clock } from 'lucide-react';
 import { CallSheetPage } from '../model';
+import DatePicker from './DatePicker';
+import TimePicker from './TimePicker';
 
 interface SummaryPanelProps {
   page: CallSheetPage;
@@ -93,11 +95,10 @@ export default function SummaryPanel({ page, onUpdate }: SummaryPanelProps) {
         <div className="callsheet-grid callsheet-grid-3 gap-4 mt-4">
           <div>
             <label className="block text-sm font-medium mb-2">Date</label>
-            <input
-              type="date"
+            <DatePicker
               value={page.dateISO?.split('T')[0] || ''}
-              onChange={(e) => handleInputChange('dateISO', e.target.value ? `${e.target.value}T00:00:00.000Z` : '')}
-              className="input"
+              onChange={(date) => handleInputChange('dateISO', date ? `${date}T00:00:00.000Z` : '')}
+              placeholder="Select date"
             />
           </div>
           <div>
@@ -116,11 +117,10 @@ export default function SummaryPanel({ page, onUpdate }: SummaryPanelProps) {
               <Clock className="w-4 h-4 inline mr-1" />
               General Crew Call
             </label>
-            <input
-              type="time"
+            <TimePicker
               value={page.crewCall || ''}
-              onChange={(e) => handleInputChange('crewCall', e.target.value)}
-              className="input"
+              onChange={(time) => handleInputChange('crewCall', time)}
+              placeholder="Set time"
             />
           </div>
         </div>
@@ -248,20 +248,18 @@ export default function SummaryPanel({ page, onUpdate }: SummaryPanelProps) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Sunrise</label>
-              <input
-                type="time"
+              <TimePicker
                 value={page.weather?.sunrise || ''}
-                onChange={(e) => handleNestedChange('weather', 'sunrise', e.target.value)}
-                className="input"
+                onChange={(time) => handleNestedChange('weather', 'sunrise', time)}
+                placeholder="Sunrise time"
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Sunset</label>
-              <input
-                type="time"
+              <TimePicker
                 value={page.weather?.sunset || ''}
-                onChange={(e) => handleNestedChange('weather', 'sunset', e.target.value)}
-                className="input"
+                onChange={(time) => handleNestedChange('weather', 'sunset', time)}
+                placeholder="Sunset time"
               />
             </div>
           </div>

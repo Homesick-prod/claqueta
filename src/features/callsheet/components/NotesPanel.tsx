@@ -128,19 +128,35 @@ export default function NotesPanel({ page, onUpdate }: NotesPanelProps) {
           </div>
 
           {/* Emergency Numbers Reference */}
-          <div className="p-4 bg-[var(--neutral-700)]/10 rounded-lg">
-            <h5 className="font-medium mb-2">Standard Emergency Numbers</h5>
+          <div className="emergency-reference">
+            <h5 className="font-medium mb-2">Standard Emergency Numbers (Thailand)</h5>
             <div className="text-sm text-[var(--text-muted)] space-y-1">
               <div className="flex justify-between">
-                <span>Emergency Services:</span>
-                <span className="font-mono">911</span>
+                <span>Emergency Services (Police/Fire/Medical):</span>
+                <span className="font-mono">191</span>
               </div>
               <div className="flex justify-between">
-                <span>Poison Control:</span>
-                <span className="font-mono">1-800-222-1222</span>
+                <span>Tourist Police:</span>
+                <span className="font-mono">1155</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Highway Police:</span>
+                <span className="font-mono">1193</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Fire Department:</span>
+                <span className="font-mono">199</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Medical Emergency:</span>
+                <span className="font-mono">1669</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Disaster Prevention:</span>
+                <span className="font-mono">1784</span>
               </div>
               <p className="mt-2 text-xs italic">
-                Always call 911 first in case of serious emergency
+                Always call 191 first for serious emergencies
               </p>
             </div>
           </div>
