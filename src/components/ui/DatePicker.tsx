@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
 interface DatePickerProps {
   value: string; // YYYY-MM-DD format
@@ -136,21 +136,24 @@ export default function DatePicker({ value, onChange, placeholder = 'Select date
   const days = getDaysInMonth(viewDate);
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative w-full">
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`
-          input flex items-center justify-between w-full
+          input flex items-center justify-between w-full text-left
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           ${isOpen ? 'border-[var(--brand)] shadow-[0_0_0_3px_rgba(76,161,138,0.2)]' : ''}
         `}
       >
-        <span className={value ? 'text-[var(--text)]' : 'text-[var(--text-muted)]'}>
-          {value ? formatDisplayDate(value) : placeholder}
-        </span>
-        <Calendar className="w-4 h-4 text-[var(--text-muted)]" />
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-[var(--text-muted)]" />
+          <span className={value ? 'text-[var(--text)]' : 'text-[var(--text-muted)]'}>
+            {value ? formatDisplayDate(value) : placeholder}
+          </span>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-[var(--text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
@@ -161,12 +164,14 @@ export default function DatePicker({ value, onChange, placeholder = 'Select date
               <button
                 onClick={() => navigateYear(-1)}
                 className="p-1 hover:bg-[var(--neutral-700)]/20 rounded transition-colors"
+                title="Previous year"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={() => navigateMonth(-1)}
                 className="p-1 hover:bg-[var(--neutral-700)]/20 rounded transition-colors"
+                title="Previous month"
               >
                 <ChevronLeft className="w-3 h-3" />
               </button>
@@ -182,12 +187,14 @@ export default function DatePicker({ value, onChange, placeholder = 'Select date
               <button
                 onClick={() => navigateMonth(1)}
                 className="p-1 hover:bg-[var(--neutral-700)]/20 rounded transition-colors"
+                title="Next month"
               >
                 <ChevronRight className="w-3 h-3" />
               </button>
               <button
                 onClick={() => navigateYear(1)}
                 className="p-1 hover:bg-[var(--neutral-700)]/20 rounded transition-colors"
+                title="Next year"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
