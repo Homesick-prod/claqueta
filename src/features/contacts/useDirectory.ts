@@ -2,67 +2,27 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { nanoid } from 'nanoid';
-import { ProjectDirectory, Contact, FeaturePolicy } from './model';
-import { loadDirectory, saveDirectory } from './store';
-import { DEFAULT_DEPARTMENTS, DEFAULT_POSITIONS } from './seed';
-import { canDeleteContact, validateOwnerConstraints } from './guard';
+import { ProjectDirectory, Contact, Role, FeaturePolicy } from './model';
+import { loadDirectory, saveDirectory, ensureBootstrapped } from './store';
+import { isEmailUniqueInDir, canRemoveContact, canDemoteOwner } from './guard';
 
 export function useDirectory(projectId: string) {
-  const [dir, setDir] = useState<ProjectDirectory>({
+  const [dir, setDir] = useState<ProjectDirectory>(() => ({
     projectId,
     departments: [],
     positions: [],
     contacts: [],
     access: { projectId, policies: [] }
-  });
-
+  }));
+  
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load directory on mount
+  // Load directory on mount and ensure bootstrapped
   useEffect(() => {
     if (!projectId) return;
-
-    const loadedDir = loadDirectory(projectId);
     
-    // Inject defaults if empty
-    if (loadedDir.departments.length === 0) {
-      loadedDir.departments = [...DEFAULT_DEPARTMENTS];
-    }
-    
-    if (loadedDir.positions.length === 0) {
-      loadedDir.positions = [...DEFAULT_POSITIONS];
-    }
-    
-    // Seed primary owner if no contacts
-    if (loadedDir.contacts.length === 0) {
-      let ownerData = { name: 'You (Owner)', email: 'owner@example.com' };
-      
-      try {
-        const storedMe = localStorage.getItem('claqueta:me');
-        if (storedMe) {
-          const parsed = JSON.parse(storedMe);
-          if (parsed.name) ownerData.name = parsed.name;
-          if (parsed.email) ownerData.email = parsed.email;
-        }
-      } catch {
-        // Use defaults
-      }
-      
-      const primaryOwner: Contact = {
-        id: nanoid(),
-        name: ownerData.name,
-        email: ownerData.email,
-        positions: [],
-        role: 'OWNER',
-        isPrimaryOwner: true,
-        lastActive: new Date().toISOString()
-      };
-      
-      loadedDir.contacts = [primaryOwner];
-    }
-    
-    setDir(loadedDir);
-    saveDirectory(loadedDir);
+    const bootstrappedDir = ensureBootstrapped(projectId);
+    setDir(bootstrappedDir);
     setIsLoading(false);
   }, [projectId]);
 
@@ -79,11 +39,10 @@ export function useDirectory(projectId: string) {
       name: '',
       email: '',
       positions: [],
-      role: 'VIEWER',
-      lastActive: new Date().toISOString()
+      role: 'VIEWER'
     };
 
-    const newDir = {
+    const newDir: ProjectDirectory = {
       ...dir,
       contacts: [newContact, ...dir.contacts]
     };
@@ -94,52 +53,78 @@ export function useDirectory(projectId: string) {
 
   // Update contact
   const updateContact = useCallback((id: string, patch: Partial<Contact>) => {
-    const newContacts = dir.contacts.map(contact =>
-      contact.id === id
-        ? { ...contact, ...patch, lastActive: new Date().toISOString() }
-        : contact
-    );
-
-    // Validate owner constraints if role is being changed
-    if (patch.role) {
-      const validation = validateOwnerConstraints(newContacts);
-      if (!validation.isValid) {
-        throw new Error(validation.error);
+    // Validate email uniqueness if email is being changed
+    if (patch.email !== undefined && patch.email !== '') {
+      if (!isEmailUniqueInDir(dir, patch.email, id)) {
+        // Log warning in dev mode but don't throw error (to not break UI)
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`Email ${patch.email} is already in use by another contact`);
+        }
+        return;
+      }
+    }
+    
+    // Validate role change if applicable
+    if (patch.role !== undefined) {
+      const contact = dir.contacts.find(c => c.id === id);
+      if (contact && contact.role === 'OWNER' && patch.role !== 'OWNER') {
+        if (!canDemoteOwner(dir, id)) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Cannot demote this owner');
+          }
+          return;
+        }
       }
     }
 
-    const newDir = { ...dir, contacts: newContacts };
+    const newContacts = dir.contacts.map(contact =>
+      contact.id === id
+        ? { ...contact, ...patch }
+        : contact
+    );
+
+    const newDir: ProjectDirectory = { ...dir, contacts: newContacts };
     saveChanges(newDir);
   }, [dir, saveChanges]);
 
   // Remove contact
   const removeContact = useCallback((id: string) => {
-    const validation = canDeleteContact(id, dir.contacts);
-    if (!validation.canDelete) {
-      throw new Error(validation.reason);
+    if (!canRemoveContact(dir, id)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Cannot remove this contact');
+      }
+      return;
     }
 
     const newContacts = dir.contacts.filter(contact => contact.id !== id);
-    const newDir = { ...dir, contacts: newContacts };
+    const newDir: ProjectDirectory = { ...dir, contacts: newContacts };
     saveChanges(newDir);
   }, [dir, saveChanges]);
 
-  // Set feature policy
+  // Set feature policy - properly implemented
   const setFeaturePolicy = useCallback((policy: FeaturePolicy) => {
-    const existingPolicies = dir.access.policies.filter(p => p.feature !== policy.feature);
-    const newPolicies = [...existingPolicies, policy];
+    const existing = dir.access?.policies ?? [];
+    const idx = existing.findIndex(p => p.feature === policy.feature);
+    const nextPolicies = [...existing];
     
-    const newDir = {
+    if (idx >= 0) {
+      nextPolicies[idx] = policy;
+    } else {
+      nextPolicies.push(policy);
+    }
+
+    const newDir: ProjectDirectory = {
       ...dir,
-      access: {
-        ...dir.access,
-        policies: newPolicies
+      access: { 
+        projectId, 
+        policies: nextPolicies 
       }
     };
     
     saveChanges(newDir);
-  }, [dir, saveChanges]);
+  }, [dir, projectId, saveChanges]);
 
+  // Return interface compatible with existing UI
   return {
     dir,
     isLoading,

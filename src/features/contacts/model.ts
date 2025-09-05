@@ -1,8 +1,7 @@
-export type ProjectRole = 'OWNER' | 'EDITOR' | 'VIEWER' | 'GUEST';
-
 export type Department = { 
   id: string; 
-  name: string; 
+  name: string;
+  order: number; // Required for stable cross-feature sorting
 };
 
 export type PositionRef = {
@@ -11,17 +10,20 @@ export type PositionRef = {
   departmentId: string; // Department.id
 };
 
+export type Role = 'OWNER' | 'EDITOR' | 'VIEWER';
+
 export type Contact = {
   id: string;
-  name: string;         // single field: "First Last"
-  email: string;
+  name: string;         // Full name in one field
+  email?: string;
   phone?: string;
-  positions: PositionRef[];
-  role: ProjectRole;
-  isPrimaryOwner?: boolean; // true for the seeded first row; cannot delete or demote; cannot transfer
-  notes?: string;
-  lastActive?: string;  // ISO
+  role: Role;           // App-level permission
+  positions: PositionRef[];   // Can span multiple departments
+  isPrimaryOwner?: boolean;   // The initial project owner (must not be removable/demotable)
 };
+
+// Types needed by existing UI components (backward compatibility)
+export type ProjectRole = Role;
 
 export type FeatureKey =
   | 'script' | 'breakdown' | 'moodboard' | 'storyboard'
@@ -46,5 +48,23 @@ export type ProjectDirectory = {
   departments: Department[];
   positions: PositionRef[];
   contacts: Contact[];
-  access: ProjectAccessConfig;
+  access?: ProjectAccessConfig;   // Optional for backward compatibility
 };
+
+// Extended types for UI components that expect these
+export interface Member extends Contact {
+  department?: string;
+  title?: string;
+  access?: string[];
+  lastActiveAt?: string;
+  invited?: boolean;
+  avatarUrl?: string;
+  notes?: string;
+}
+
+export interface PendingInvite {
+  email: string;
+  role: Role;
+  invitedAt: string;
+  projectId: string;
+}
