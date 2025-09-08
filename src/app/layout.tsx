@@ -3,6 +3,7 @@ import { Inter, Montserrat } from 'next/font/google';
 import ThemeScript from '../components/ThemeScript';
 import '../styles/tw.css';
 
+// Remove Inter from body usage - Montserrat will be applied site-wide
 const inter = Inter({ subsets: ['latin'] });
 const montserrat = Montserrat({ 
   subsets: ['latin'],
@@ -25,7 +26,7 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`${inter.className} antialiased bg-[var(--page-bg)] text-[var(--text)]`}>
+      <body className={`${montserrat.className} antialiased bg-[var(--page-bg)] text-[var(--text)]`}>
         {children}
       </body>
     </html>

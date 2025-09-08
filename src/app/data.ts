@@ -1,334 +1,129 @@
-export const features = [
-  // Pre-production
+// src/data/data.ts
+export type Status = 'shipped' | 'in_progress' | 'planned';
+export type ChangeType = 'major' | 'minor';
+
+export const HERO = {
+  headlineLines: ["Claqueta","Film Production","Management"],
+  tagline: "Plan. Shoot. Wrap. All in one place.",
+  ctaPrimary: { label: "Try the Beta", href: "/hub" },
+  ctaSecondary: { label: "Join Waitlist", note: "Early waitlisters may get Pro free for 1 month after GA." }
+};
+
+export const FEATURE_BLOCKS = [
   {
-    key: 'script_imports',
-    title: 'Script & Imports',
-    description: 'AI-powered script breakdown with import management',
-    status: 'shipped' as const,
-    category: 'pre-production'
+    title: "Pre-production Toolkit",
+    blurb: "Plan faster and align every department before day one.",
+    items: [
+      { name: "Script & Imports", desc: "Ingest screenplay files (e.g., Final Draft) ready for breakdown & scheduling." },
+      { name: "AI Script Breakdown", desc: "Auto-detect scenes, INT/EXT, day/night, characters, props, locations." },
+      { name: "Moodboard / Storyboard", desc: "Collect visual references and key frames to align tone and shots." },
+      { name: "Locations & Floor plan", desc: "Store location details, access paths, staging areas, floor plans." },
+      { name: "Shotlist", desc: "Lens/movement/coverage per scene; links to breakdown." },
+      { name: "Stripboard / Shooting schedule", desc: "Arrange scene boards, schedule days, company moves, DOOD readiness." },
+      { name: "Calendar", desc: "Mark key events/rehearsals/meetings, export ICS." },
+      { name: "Contacts & Roles (Access Control)", desc: "All crew contacts with roles and granular feature access." },
+      { name: "Tasks / Kanban", desc: "Track per-department tasks from To-Do to Done." },
+      { name: "Budget / Equipment", desc: "Track gear and line items against your budget." },
+      { name: "Notes / Risks", desc: "Centralize notes and risks by scene or shoot day." }
+    ]
   },
   {
-    key: 'script_breakdown',
-    title: 'Script Breakdown',
-    description: 'Automatic scene analysis for locations, props, characters',
-    status: 'shipped' as const,
-    category: 'pre-production'
+    title: "On-Set / Production Control",
+    blurb: "Keep the day moving with clear calls and real progress.",
+    items: [
+      { name: "Call Sheets (PDF + ICS)", desc: "Generate and distribute clear call sheets as PDF + ICS." },
+      { name: "Daily schedule / Unit move", desc: "Day timeline, unit moves, rally/parking/load-in points." },
+      { name: "Shot progress / Continuity", desc: "Track coverage and continuity across departments." },
+      { name: "Dailies links", desc: "Centralize viewing links and references after wrap." }
+    ]
   },
   {
-    key: 'moodboard',
-    title: 'Moodboard/Storyboard',
-    description: 'Visual references and shot planning tools',
-    status: 'in_progress' as const,
-    category: 'pre-production'
+    title: "Collaboration & LINE Integration",
+    blurb: "Two-way updates in your LINE group, not another app.",
+    items: [
+      { name: "Push Call Sheet", desc: "AD confirms → send PDF + ICS to LINE group automatically." },
+      { name: "Shotlist updates", desc: "DP confirms → share latest shotlist link to the group." },
+      { name: "Smart reminders", desc: "Auto-notify T-1d, T-2h, T-30m before key times." },
+      { name: "Meetings & links", desc: "Calendar invites with Meet link, plus reminders." },
+      { name: "Q&A in chat", desc: "Crew asks; bot replies if it knows (e.g., map for Scene 12)." }
+    ]
   },
   {
-    key: 'locations',
-    title: 'Locations & Floor plan',
-    description: 'Location scouting with maps and logistics',
-    status: 'in_progress' as const,
-    category: 'pre-production'
-  },
-  {
-    key: 'shotlist',
-    title: 'Shotlist',
-    description: 'Detailed shot planning with lens and movement notes',
-    status: 'shipped' as const,
-    category: 'pre-production'
-  },
-  {
-    key: 'stripboard',
-    title: 'Stripboard / Shooting schedule',
-    description: 'Drag & drop scheduling with conflict detection',
-    status: 'in_progress' as const,
-    category: 'pre-production'
-  },
-  {
-    key: 'calendar',
-    title: 'Calendar',
-    description: 'Production calendar with crew availability',
-    status: 'planned' as const,
-    category: 'pre-production'
-  },
-  {
-    key: 'contacts',
-    title: 'Contacts & Roles',
-    description: 'Team management with role-based permissions',
-    status: 'shipped' as const,
-    category: 'pre-production'
-  },
-  {
-    key: 'tasks',
-    title: 'Tasks/Kanban',
-    description: 'Project management with department workflows',
-    status: 'planned' as const,
-    category: 'pre-production'
-  },
-  {
-    key: 'budget',
-    title: 'Budget/Equipment',
-    description: 'Budget tracking and equipment management',
-    status: 'planned' as const,
-    category: 'pre-production'
-  },
-  {
-    key: 'notes',
-    title: 'Notes/Risks',
-    description: 'Production notes and risk management',
-    status: 'planned' as const,
-    category: 'pre-production'
-  },
-  // Production
-  {
-    key: 'callsheets',
-    title: 'Call sheets',
-    description: 'Professional PDF generation with LINE notifications',
-    status: 'shipped' as const,
-    category: 'production'
-  },
-  {
-    key: 'schedule_daily',
-    title: 'Daily schedule / Unit move',
-    description: 'Real-time schedule updates and location moves',
-    status: 'in_progress' as const,
-    category: 'production'
-  },
-  {
-    key: 'continuity',
-    title: 'Shot progress / Continuity',
-    description: 'On-set progress tracking and continuity notes',
-    status: 'in_progress' as const,
-    category: 'production'
-  },
-  {
-    key: 'dailies',
-    title: 'Dailies links',
-    description: 'Review footage links and notes distribution',
-    status: 'planned' as const,
-    category: 'production'
-  },
-  // Wrap
-  {
-    key: 'deliverables',
-    title: 'Deliverables checklist',
-    description: 'Post-production deliverable tracking',
-    status: 'planned' as const,
-    category: 'wrap'
-  },
-  {
-    key: 'reports',
-    title: 'Reports & Post handoff',
-    description: 'Final reports and post-production handoff',
-    status: 'planned' as const,
-    category: 'wrap'
+    title: "Wrap & Handoff",
+    blurb: "Close the loop like a pro.",
+    items: [
+      { name: "Deliverables checklist", desc: "Final deliverables and specs ready for post or studio." },
+      { name: "Reports & Post handoff", desc: "Timesheets, wrap reports, and handoff docs." }
+    ]
   }
 ];
 
-export const progress = [
-  { key: 'script_imports', title: 'Script & Imports', percent: 90, note: 'AI breakdown complete, import tools refined' },
-  { key: 'script_breakdown', title: 'Script Breakdown', percent: 85, note: 'Core analysis working, scene detection active' },
-  { key: 'moodboard', title: 'Moodboard/Storyboard', percent: 40, note: 'Reference system built, storyboard tools in progress' },
-  { key: 'locations', title: 'Locations & Floor plan', percent: 25, note: 'Location database started, map integration next' },
-  { key: 'shotlist', title: 'Shotlist', percent: 80, note: 'Shot planning complete, coverage tools active' },
-  { key: 'stripboard', title: 'Stripboard / Shooting schedule', percent: 60, note: 'Basic scheduling working, advanced features in development' },
-  { key: 'calendar', title: 'Calendar', percent: 15, note: 'Calendar framework started, availability system planned' },
-  { key: 'contacts', title: 'Contacts & Roles', percent: 95, note: 'Fully functional with department-based permissions' },
-  { key: 'tasks', title: 'Tasks/Kanban', percent: 10, note: 'Task structure designed, workflow implementation planned' },
-  { key: 'budget', title: 'Budget/Equipment', percent: 20, note: 'Budget framework started, equipment tracking next' },
-  { key: 'notes', title: 'Notes/Risks', percent: 30, note: 'Note system built, risk management features planned' },
-  { key: 'callsheets', title: 'Call sheets', percent: 90, note: 'PDF generation complete, LINE notifications active' },
-  { key: 'schedule_daily', title: 'Daily schedule / Unit move', percent: 50, note: 'Schedule updates working, unit move tracking in progress' },
-  { key: 'continuity', title: 'Shot progress / Continuity', percent: 35, note: 'Progress tracking built, continuity tools in development' },
-  { key: 'dailies', title: 'Dailies links', percent: 15, note: 'Framework planned, integration with review platforms next' },
-  { key: 'deliverables', title: 'Deliverables checklist', percent: 5, note: 'Checklist structure designed, tracking system planned' },
-  { key: 'reports', title: 'Reports & Post handoff', percent: 10, note: 'Report templates started, handoff workflow planned' }
+export const PROGRESS: { name: string; status: Status; percent: number }[] = [
+  { name: "Contacts & Roles", status: "in_progress", percent: 80 },
+  { name: "Call Sheets", status: "in_progress", percent: 40 },
+  { name: "Stripboard", status: "in_progress", percent: 60 },
+  { name: "Shotlist", status: "in_progress", percent: 60 },
+  { name: "Others (tooling, integrations, etc.)", status: "planned", percent: 10 }
 ];
 
-export const roadmap = {
+export const ROADMAP = {
   now: [
-    'Stripboard drag & drop refinements',
-    'LINE bot notification improvements',
-    'Call sheet template customization',
-    'Contact role permission system'
+    "Contacts & Roles v1",
+    "Call Sheets v1",
+    "Stripboard & Shotlist v2 (migrate from old site)"
   ],
   next: [
-    'Calendar Hub with RRULE support',
-    'Location permit tracking system',
-    'Advanced budgeting tools',
-    'File versioning system',
-    'Mobile app for on-set capture'
+    "LINE API integration",
+    "Localization (Thai first)",
+    "Calendar Hub"
   ],
   later: [
-    'Multi-language support (Thai)',
-    'Advanced AI script analysis',
-    'Integration with post-production tools',
-    'Mobile app for Android',
-    'Enterprise team features'
+    "Blockshot iOS",
+    "Conflict/time-cost analytics",
+    "Locations DB",
+    "Budget",
+    "Roles & approvals",
+    "Offline-first",
+    "Cloud storage & watermarking"
   ]
 };
 
-export const changelog = [
-  {
-    date: '2025-09-06',
-    type: 'major' as const,
-    items: [
-      'New cinematic landing page with motion interactions',
-      'Complete workflow timeline redesign',
-      'LINE integration with two-way chat simulation',
-      'Progress tracking system wired to live data'
-    ]
-  },
-  {
-    date: '2025-09-05',
-    type: 'minor' as const,
-    items: [
-      'Call sheet PDF generation improvements',
-      'Contact role system enhancements',
-      'Bug fixes in stripboard sorting'
-    ]
-  },
-  {
-    date: '2025-09-04',
-    type: 'major' as const,
-    items: [
-      'Initial LINE bot integration',
-      'Notification timing system (T-24, T-2, T-10)',
-      'Emergency contact section in call sheets'
-    ]
-  },
-  {
-    date: '2025-09-03',
-    type: 'minor' as const,
-    items: [
-      'AI breakdown accuracy improvements',
-      'Shot planning interface redesign',
-      'Project template system launch'
-    ]
-  },
-  {
-    date: '2025-09-02',
-    type: 'major' as const,
-    items: [
-      'Stripboard scheduling system launch',
-      'Department-based contact management',
-      'Call sheet auto-generation from stripboard'
-    ]
-  }
+export const CHANGELOG: { date: string; type: ChangeType; text: string }[] = [
+  { date: "2025-09-06", type: "major", text: "Landing Page scaffolding" },
+  { date: "2025-09-05", type: "minor", text: "Fix Contacts & Roles compatibility" },
+  { date: "2025-09-04", type: "major", text: "Remove Call Sheet (broken)" },
+  { date: "2025-09-03", type: "major", text: "Fix position & Feature Access Control; add Call Sheet; integrate with Contacts & Roles" },
+  { date: "2025-09-02", type: "major", text: "Add Contacts & Roles" },
+  { date: "2025-08-31", type: "minor", text: "Add features in Pre/Prod/Wrap; refine UX/UI" },
+  { date: "2025-08-24", type: "minor", text: "Hub UX/UI improvements" },
+  { date: "2025-08-22", type: "minor", text: "Hub bug fixes" },
+  { date: "2025-08-21", type: "major", text: "Hub scaffolding" }
 ];
 
-export const workflowSteps = [
-  {
-    phase: 'Before',
-    title: 'Pre-Production',
-    actions: ['AI Breakdown', 'Location Scout', 'Shot Planning', 'Schedule Creation'],
-    outputs: ['Stripboard', 'Shot Lists', 'Location Database', 'Crew Contacts']
-  },
-  {
-    phase: 'During', 
-    title: 'Production',
-    actions: ['Call Sheet Generation', 'Daily Updates', 'Progress Tracking', 'LINE Notifications'],
-    outputs: ['PDF Call Sheets', 'ICS Calendar', 'Progress Reports', 'Crew Alerts']
-  },
-  {
-    phase: 'After',
-    title: 'Wrap',
-    actions: ['Final Reports', 'Asset Handoff', 'Archive Management', 'Post Coordination'],
-    outputs: ['Wrap Reports', 'Asset Database', 'Delivery Notes', 'Archive System']
-  }
+export const FAQ = [
+  { q: "What is Claqueta?", a: "A film production management tool that centralizes pre-production, on-set control, and wrap. No fake data; we show real status." },
+  { q: "How is it different?", a: "Built for real production workflows: contacts & roles with access control, shotlist/stripboard, call sheets (PDF+ICS), and LINE integration so crews stay in the apps they already use." },
+  { q: "Will it save time?", a: "Yes—align departments earlier and automate distribution (PDF/ICS/LINE) to reduce re-sending files and manual reminders." },
+  { q: "Is there Thai language support?", a: "Localization starts with Thai (on the roadmap). More languages later." },
+  { q: "How much does it cost?", a: "Beta is free. After GA: Free tier, Pro $15/mo, Studio $25/mo. Details will be announced before GA." },
+  { q: "How do I join the beta?", a: "Click Try the Beta to open the hub, or Join Waitlist to leave your email and role. Early waitlisters may get Pro free for 1 month after GA." },
+  { q: "Privacy & data?", a: "We avoid fake data and stay transparent. More details will be published before GA." }
 ];
 
-export const lineMessages = [
-  {
-    sender: 'crew',
-    message: 'What time is crew call tomorrow?',
-    timestamp: '14:30'
-  },
-  {
-    sender: 'claqueta',
-    message: '📋 Tomorrow\'s call sheet is ready! Crew call: 6:00 AM',
-    timestamp: '14:31',
-    hasAttachment: true,
-    attachmentType: 'call_sheet'
-  },
-  {
-    sender: 'crew', 
-    message: 'Where are we shooting exactly?',
-    timestamp: '14:32'
-  },
-  {
-    sender: 'claqueta',
-    message: '🗺️ Location: Studio B - Here\'s the map link',
-    timestamp: '14:32',
-    hasAttachment: true,
-    attachmentType: 'map'
-  },
-  {
-    sender: 'claqueta',
-    message: '⏰ T-24 reminder: Weather looks good, no delays expected',
-    timestamp: '18:00'
-  },
-  {
-    sender: 'claqueta',
-    message: '⏰ T-2 reminder: Makeup trailer arriving at 5:30 AM',
-    timestamp: '04:00'
-  },
-  {
-    sender: 'crew',
-    message: 'Are we ready to start?',
-    timestamp: '05:50'
-  },
-  {
-    sender: 'claqueta',
-    message: '🎬 Start shooting in 10 minutes - all departments ready',
-    timestamp: '05:51'
-  }
+export const PRICING = [
+  { tier: "Free (Beta)", price: "$0", note: "During beta: free." },
+  { tier: "Free",        price: "$0", note: "After GA: base limits to be announced." },
+  { tier: "Pro",         price: "$15 / mo", note: "Details to be announced pre-GA." },
+  { tier: "Studio",      price: "$25 / mo", note: "Details to be announced pre-GA." }
 ];
 
-export const faqData = [
-  {
-    question: 'How does Claqueta save time in film production?',
-    answer: 'Claqueta automates repetitive tasks like call sheet generation, script breakdown, and crew notifications. What used to take hours now takes minutes, letting you focus on creative decisions.'
-  },
-  {
-    question: 'What\'s included in the beta?',
-    answer: 'The beta includes script breakdown, stripboard scheduling, call sheet generation, contact management, and LINE notifications. All core production management features are available.'
-  },
-  {
-    question: 'How much does Claqueta cost?',
-    answer: 'Claqueta is free during the beta period. Post-beta pricing will be subscription-based for teams, with transparent pricing and no hidden costs.'
-  },
-  {
-    question: 'Is there Thai language support?',
-    answer: 'Thai localization is planned for the "Later" roadmap phase. Currently, the interface is in English with LINE integration supporting Thai messages.'
-  },
-  {
-    question: 'How secure is my production data?',
-    answer: 'Your data belongs to you, always exportable, with industry-standard security. We don\'t share production information and follow film industry privacy practices.'
-  },
-  {
-    question: 'How do I join the beta?',
-    answer: 'Click "Try the Beta" to access the production hub. Beta access is currently free and open to filmmakers.'
-  },
-  {
-    question: 'Can I see what\'s being developed next?',
-    answer: 'Yes! Check our <a href="#roadmap" class="text-[var(--brand)] hover:underline">development roadmap</a> for upcoming features and timelines.'
-  },
-  {
-    question: 'What if I need a feature that\'s not built yet?',
-    answer: 'Feedback drives our development priorities. Contact us with your needs - solo developer building for real filmmakers means your input directly shapes the product.'
-  }
+export const LINE_DEMO = [
+  { from: "claqueta", text: "Call Sheet confirmed by AD (D-3 at 20:00). Sending PDF + ICS…", meta: "to LINE group" },
+  { from: "claqueta", text: "Meeting scheduled tomorrow 10:00 with Meet link. I'll remind everyone 2 hours before." },
+  { from: "dp",       text: "Shotlist updated (Scene 12-14). Please see the latest version." },
+  { from: "claqueta", text: "New Shotlist link posted." },
+  { from: "crew",     text: "Where is Scene 12 location?" },
+  { from: "claqueta", text: "Map pinned for Scene 12 (Parking at Gate B)." },
+  { from: "claqueta", text: "T-1d: Tomorrow we shoot. Get a good rest." },
+  { from: "claqueta", text: "T-30m: Company on set in 30 minutes." }
 ];
-
-// Get current time in UTC+7 (Asia/Bangkok)
-export const getLastUpdated = () => {
-  const now = new Date();
-  const utc7 = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-  return utc7.toLocaleString('en-US', {
-    timeZone: 'Asia/Bangkok',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }) + ' UTC+7';
-};
