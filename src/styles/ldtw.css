@@ -1,0 +1,279 @@
+/* src/styles/ldtw.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Design tokens (root variables) */
+:root {
+  /* brand */
+  --brand-green: #4CA18A;
+  --brand-amber: #FAAA39;
+
+  /* dark neutrals (ink) */
+  --ink-1000: #0a0f12;
+  --ink-900:  #0c1114;
+  --ink-800:  #0f1518;
+  --ink-700:  #131a1f;
+  --ink-600:  #182127;
+  --ink-500:  #1f2a31;
+  --ink-400:  #2a3841;
+  --ink-300:  #3a4c57;
+  --ink-200:  #4e6673;
+  --ink-100:  #6a8796;
+
+  /* text */
+  --text-strong: #ffffff;
+  --text-muted:  rgba(255,255,255,.85);
+  --text-dim:    rgba(255,255,255,.64);
+
+  /* overlay */
+  --black: #000;
+
+  /* runtime */
+  --lb-open: 1;          /* 0 = closed frame (bars visible), 1 = fully open (off-screen) */
+  --heroEpicOpacity: 0;  /* 1 = hero epic bg fully visible; 0 = base bg only */
+}
+
+/* Background layers (global) */
+.bg-layers { 
+  position: fixed; 
+  inset: 0; 
+  pointer-events: none; 
+  z-index: -10; 
+}
+
+.bg-base-layer {
+  position: absolute; 
+  inset: 0;
+  background:
+    radial-gradient(1200px 600px at 20% 15%, rgba(76,161,138,.10), transparent 62%),
+    radial-gradient(900px 500px  at 80% 85%, rgba(250,170,57,.07), transparent 62%),
+    linear-gradient(180deg, var(--ink-900) 0%, var(--ink-800) 100%);
+}
+
+.bg-hero-layer {
+  position: absolute; 
+  inset: 0;
+  opacity: var(--heroEpicOpacity, 0);
+  background:
+    radial-gradient(1600px 800px at 50% 18%, rgba(76,161,138,.25), transparent 65%),
+    radial-gradient(1200px 600px at 60% 80%, rgba(250,170,57,.16), transparent 60%),
+    linear-gradient(180deg, var(--ink-1000) 0%, var(--ink-900) 100%);
+  mix-blend-mode: screen;
+  transition: opacity .45s ease-out;
+}
+
+/* Starfield (10 stars, twinkle + optional drift) */
+.starfield { 
+  position: absolute; 
+  inset: 0; 
+  pointer-events: none; 
+  overflow: hidden; 
+}
+
+.star { 
+  position: absolute; 
+  border-radius: 9999px; 
+  background: #fff; 
+  opacity: .9; 
+  animation: twinkle 3.4s ease-in-out infinite; 
+}
+
+.star.sm { width: 1.5px; height: 1.5px; }
+.star.md { width: 2.5px; height: 2.5px; }
+.star.lg { width: 3.5px; height: 3.5px; }
+
+@keyframes twinkle { 
+  0%,100% { opacity: .6 } 
+  50% { opacity: 1 } 
+}
+
+@keyframes drift { 
+  0% { transform: translate(0,0) } 
+  100% { transform: translate(var(--dx,6px), var(--dy,8px)) } 
+}
+
+/* Letterbox overlay (fixed, pure black) */
+.lb-fixed { 
+  position: fixed; 
+  inset: 0; 
+  width: 100vw; 
+  height: 100vh; 
+  pointer-events: none; 
+  z-index: 9999; 
+}
+
+.lb-bar { 
+  position: absolute; 
+  left: 0; 
+  right: 0; 
+  background: var(--black); 
+}
+
+.lb-top { 
+  top: 0; 
+  height: 32svh; 
+  clip-path: inset( calc(var(--lb-open,1)*100%) 0 0 0 ); 
+}
+
+.lb-bottom { 
+  bottom: 0; 
+  height: 32svh; 
+  clip-path: inset( 0 0 calc(var(--lb-open,1)*100%) 0 ); 
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lb-bar { 
+    transition: clip-path .40s ease-out; 
+  }
+}
+
+/* Scroll lock */
+.scroll-locked { 
+  overflow: hidden; 
+  height: 100svh; 
+  touch-action: none; 
+}
+
+/* Hero headline (pop → bob) */
+@keyframes popIn { 
+  0% { transform: translateY(24px) scale(.96); opacity: 0; }
+  60% { transform: translateY(-4px) scale(1.02); opacity: 1; }
+  100% { transform: translateY(0) scale(1); } 
+}
+
+@keyframes bobSlow { 
+  0%,100% { transform: translateY(0) } 
+  50% { transform: translateY(-6px) } 
+}
+
+.hero-line { 
+  opacity: 0; 
+  transform: translateY(24px) scale(.96); 
+}
+
+.hero-line.animate.bob {
+  animation: popIn .60s cubic-bezier(.2,.8,.2,1) both,
+             bobSlow 8s ease-in-out infinite .80s;
+}
+
+/* CTA buttons (sheen hover) */
+.btn { 
+  position: relative; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center;
+  gap: .5rem; 
+  border-radius: .75rem; 
+  padding: .75rem 1rem; 
+  font-weight: 600; 
+  line-height: 1;
+  transition: transform .2s ease, box-shadow .2s ease; 
+}
+
+.btn:focus-visible { 
+  outline: 2px solid var(--brand-green); 
+  outline-offset: 2px; 
+}
+
+.btn:hover { 
+  transform: translateY(-2px); 
+}
+
+.btn-primary {
+  color: var(--ink-1000);
+  background: linear-gradient(180deg, #5ac4a7 0%, var(--brand-green) 100%);
+  box-shadow: 0 8px 24px rgba(76,161,138,.25);
+}
+
+.btn-ghost {
+  color: var(--text-strong); 
+  background: transparent; 
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+
+.btn::before {
+  content: ""; 
+  position: absolute; 
+  inset: -2px; 
+  border-radius: inherit; 
+  pointer-events: none;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.25) 30%, transparent 60%);
+  transform: translateX(-140%); 
+  filter: blur(2px);
+}
+
+.btn:hover::before { 
+  transition: transform .6s ease; 
+  transform: translateX(120%); 
+}
+
+/* Appbar transitions */
+.appbar { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  z-index: 5000; 
+}
+
+.appbar-inner { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  gap: 1rem;
+  padding: .75rem 1rem; 
+  backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, rgba(14,18,21,.75), rgba(14,18,21,.35));
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.appbar-enter { 
+  opacity: 0; 
+  transform: translateY(-8px); 
+}
+
+.appbar-enter.appbar-enter-active { 
+  transition: opacity .5s cubic-bezier(.2,.8,.2,1),
+              transform .5s cubic-bezier(.2,.8,.2,1);
+  opacity: 1; 
+  transform: translateY(0); 
+}
+
+.appbar-exit { 
+  opacity: 1; 
+  transform: translateY(0); 
+}
+
+.appbar-exit.appbar-exit-active { 
+  transition: opacity .35s ease, transform .35s ease;
+  opacity: 0; 
+  transform: translateY(-6px); 
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .bg-hero-layer { 
+    transition: opacity .2s ease; 
+  }
+  
+  .lb-bar { 
+    transition: none !important; 
+  }
+  
+  .hero-line, .hero-line.animate.bob { 
+    animation: none !important; 
+    opacity: 1; 
+    transform: none; 
+  }
+  
+  .btn, .btn::before { 
+    transition: none !important; 
+  }
+  
+  .appbar-enter, .appbar-enter-active, .appbar-exit, .appbar-exit-active { 
+    transition: none !important; 
+    transform: none !important; 
+    opacity: 1 !important; 
+  }
+}
