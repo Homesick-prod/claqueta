@@ -26,13 +26,12 @@ import {
 import { 
   useMounted,
   buildStars,
-  heroProgress,
   lockScroll,
   unlockScroll,
-  bindScroll,
   observe,
   usePointerAura,
-  whipBlur
+  whipBlur,
+  startRealtimeHeroLoop
 } from '@/lib/anim';
 import { HERO, FEATURE_BLOCKS, PROGRESS, ROADMAP, CHANGELOG, FAQ, PRICING, LINE_DEMO } from './data';
 
@@ -207,8 +206,6 @@ export default function LandingPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [appbarVisible, setAppbarVisible] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
-  const [heroEpicOpacity, setHeroEpicOpacity] = useState(0);
-  const [lbOpen, setLbOpen] = useState(1); // 0 = closed (bars visible), 1 = open (bars retracted)
 
   // REFS
   const heroRef = useRef<HTMLElement>(null);
@@ -230,18 +227,18 @@ export default function LandingPage() {
     if (!mounted) return;
 
     // T0: base bg only, bars retracted, scroll locked
-    setHeroEpicOpacity(0);
-    setLbOpen(1);
+    document.documentElement.style.setProperty('--heroEpicOpacity', '0');
+    document.documentElement.style.setProperty('--lb-open', '1');
     lockScroll();
 
     // T1 (~900ms): hero epic fades in
     setTimeout(() => {
-      setHeroEpicOpacity(1);
+      document.documentElement.style.setProperty('--heroEpicOpacity', '1');
     }, 900);
 
     // T2 (+400ms): bars slide in
     setTimeout(() => {
-      setLbOpen(0);
+      document.documentElement.style.setProperty('--lb-open', '0');
     }, 1300);
 
     // T3: Hero headline lines appear (handled by CSS animations)
@@ -252,27 +249,26 @@ export default function LandingPage() {
     }, 4000);
   }, [mounted]);
 
-  // Scroll behavior after unlock
+  // Start realtime loop after unlock
   useEffect(() => {
-    if (!unlocked || !heroRef.current) return;
+    if (!unlocked) return;
+    const el = heroRef.current;
+    if (!el) return;
 
-    const unbind = bindScroll(() => {
-      if (!heroRef.current) return;
-      
-      const progress = heroProgress(heroRef.current);
-      
-      // While in Hero: --lb-open = progress, --heroEpicOpacity = 1 - progress
-      if (progress < 1) {
-        setLbOpen(progress);
-        setHeroEpicOpacity(1 - progress);
-      } else {
-        // Exiting Hero: force bars open, epic off
-        setLbOpen(1);
-        setHeroEpicOpacity(0);
-      }
-    });
+    // kill long transitions for live scroll
+    const root = document.documentElement;
+    root.style.setProperty('--lb-tr', '0s');      // or '120ms'
+    root.style.setProperty('--hero-tr', '0s');    // or '120ms'
 
-    return unbind;
+    const stop = startRealtimeHeroLoop(el, (p) => {
+      // realtime progress each frame
+      const lb = p;
+      const epic = 1 - p;
+      root.style.setProperty('--lb-open', lb.toFixed(4));
+      root.style.setProperty('--heroEpicOpacity', epic.toFixed(4));
+    }, { smooth: false });                         // no smoothing for true realtime
+
+    return () => stop && stop();
   }, [unlocked]);
 
   // Appbar visibility with IntersectionObserver
@@ -319,12 +315,6 @@ export default function LandingPage() {
       }
     }, 100);
   }, []);
-
-  // Update CSS variables
-  useEffect(() => {
-    document.documentElement.style.setProperty('--heroEpicOpacity', heroEpicOpacity.toString());
-    document.documentElement.style.setProperty('--lb-open', lbOpen.toString());
-  }, [heroEpicOpacity, lbOpen]);
 
   if (!mounted) {
     return <div className="min-h-screen bg-[var(--page-bg)]" />;
@@ -373,22 +363,20 @@ export default function LandingPage() {
         </nav>
       )}
 
-      {/* Hero Section */}
-      <section 
+      {/* === DO NOT MODIFY THIS HERO BLOCK (mobile sizes already tuned) === */}
+      <section
         id="hero"
         ref={heroRef}
-        className="relative min-h-screen flex items-center justify-center px-4 z-30"
+        className="relative min-h-[100svh] flex items-center justify-center px-4 z-30"
       >
         <div className="max-w-4xl mx-auto text-center">
-          {/* Compute stagger timing for intro sequence */}
           {(() => {
-            const STAGGER_START = 1.5;       // matches first line delay
-            const STAGGER_STEP  = 0.2;       // matches per-line increment
+            const STAGGER_START = 1.5;
+            const STAGGER_STEP  = 0.2;
             const afterTitle    = STAGGER_START + HERO.headlineLines.length * STAGGER_STEP;
-            
+
             return (
               <>
-                {/* Hero Headlines - Line by Line with size differentiation and glow */}
                 <h1 className="hero-title font-bold mb-6 text-center leading-tight">
                   {HERO.headlineLines.map((line, index) => (
                     <span
@@ -406,24 +394,22 @@ export default function LandingPage() {
                   ))}
                 </h1>
 
-                {/* Subtitle - appears after headline lines with gentle float */}
-<p
-  className="hero-line block animate bob float-soft
-             text-base sm:text-lg md:text-xl
-             text-[var(--text-muted)] mb-8 max-w-2xl mx-auto text-center"
-  style={{ animationDelay: `${afterTitle + 0.25}s` }}
->
+                <p
+                  className="hero-line block animate bob float-soft
+                             text-base sm:text-lg md:text-xl
+                             text-[var(--text-muted)] mb-8 max-w-2xl mx-auto text-center"
+                  style={{ animationDelay: `${afterTitle + 0.25}s` }}
+                >
                   {HERO.tagline}
                 </p>
 
-                {/* CTA buttons - appear last with smaller size and gentle float */}
                 <div
                   className="hero-line block animate bob float-soft flex flex-col sm:flex-row items-center justify-center gap-3"
                   style={{ animationDelay: `${afterTitle + 0.55}s` }}
                 >
                   <Link href={HERO.ctaPrimary.href} className="btn btn-primary btn-hero-sm inline-flex items-center gap-2">
                     <svg className="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M8 5v14l11-7L8 5z" fill="currentColor"/>
+                      <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
                     </svg>
                     {HERO.ctaPrimary.label}
                   </Link>
@@ -436,6 +422,7 @@ export default function LandingPage() {
           })()}
         </div>
       </section>
+      {/* === END: DO NOT MODIFY === */}
 
       {/* Content sections */}
       <div className="relative z-30 bg-[var(--page-bg)]">

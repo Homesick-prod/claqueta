@@ -63,7 +63,7 @@ export const buildStars = (count: number = 10, seed: number): Array<{
   return stars;
 };
 
-// HERO PROGRESS (0..1 within hero section)
+// HERO PROGRESS (0..1 within hero section) - LEGACY FUNCTION KEPT
 export const heroProgress = (heroEl: HTMLElement): number => {
   const rect = heroEl.getBoundingClientRect();
   const viewportHeight = window.innerHeight;
@@ -240,3 +240,64 @@ export const whipBlur = (direction: 'up' | 'down', ms: number = 350): void => {
     body.classList.remove(className);
   }, ms);
 };
+
+// ================== NEW REALTIME HELPERS ==================
+
+export function lerp(current: number, target: number, alpha = 0.18) {
+  return current + (target - current) * alpha;
+}
+
+export function heroProgressRealtime(heroEl: HTMLElement) {
+  const rect = heroEl.getBoundingClientRect();
+  const heroH = Math.max(1, rect.height);
+  const scrolled = -rect.top; // px scrolled past hero top
+  const p = scrolled / heroH;
+  return Math.max(0, Math.min(1, p));
+}
+
+/**
+ * Start a continuous rAF loop. It samples hero rect each frame and calls onUpdate(p)
+ * even during inertial/momentum scroll. Optionally applies light smoothing via lerp.
+ */
+export function startRealtimeHeroLoop(
+  heroEl: HTMLElement,
+  onUpdate: (p: number) => void,
+  opts: { smooth?: boolean; easing?: number } = {}
+){
+  let rafId = 0;
+  let running = true;
+  let smoothed = 0;
+
+  const tick = () => {
+    if (!running) return;
+    const target = heroProgressRealtime(heroEl);
+    if (opts.smooth) {
+      const a = typeof opts.easing === 'number' ? opts.easing : 0.20;
+      smoothed = lerp(smoothed, target, a);
+      onUpdate(smoothed);
+    } else {
+      onUpdate(target);
+    }
+    rafId = window.requestAnimationFrame(tick);
+  };
+
+  // keep the loop alive; no dependency on scroll events to run
+  rafId = window.requestAnimationFrame(tick);
+
+  // optional: stop when tab hidden to save CPU, resume when visible
+  const onVis = () => {
+    if (document.hidden) {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+    } else if (!rafId) {
+      rafId = requestAnimationFrame(tick);
+    }
+  };
+  document.addEventListener('visibilitychange', onVis);
+
+  return () => {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    document.removeEventListener('visibilitychange', onVis);
+  };
+}
