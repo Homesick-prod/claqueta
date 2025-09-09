@@ -47,10 +47,6 @@
     /* Letterbox and Hero Epic Opacity */
     --lb-open: 1;
     --heroEpicOpacity: 0;
-    
-    /* Runtime-configurable transitions */
-    --lb-tr: 1.2s;     /* letterbox transform transition (intro) */
-    --hero-tr: 1s;     /* hero epic opacity transition (intro) */
   }
   
   [data-theme="light"] {
@@ -676,7 +672,7 @@
     radial-gradient(ellipse 900px 600px at 75% 70%, rgba(250, 170, 57, 0.20) 0%, transparent 65%),
     radial-gradient(ellipse 1400px 1000px at 50% 85%, rgba(76, 161, 138, 0.15) 0%, transparent 80%),
     linear-gradient(135deg, var(--ink-darkest) 0%, #1A2B1F 20%, var(--ink-dark) 35%, #1F2A23 50%, var(--ink-darker) 65%, #161B21 80%, #1A2B1F 92%, var(--ink-darkest) 100%);
-  transition: opacity var(--hero-tr, 1s) ease;
+  transition: opacity 1s ease;
 }
 
 /* Starfield */
@@ -739,40 +735,28 @@
 /* Letterbox overlay */
 .lb-fixed {
   position: fixed;
-  left: 0;
-  top: 0;
-  width: 100vw;            /* not 100% to avoid body width quirks */
-  height: 100svh;          /* small viewport height -> pins to visible screen */
+  inset: 0;
   pointer-events: none;
   z-index: 40;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-}
-@supports not (height: 100svh){
-  .lb-fixed{ height: 100vh; } /* fallback */
 }
 
-/* Common bar visuals */
 .lb-bar {
-  background: #000;
-  filter: drop-shadow(0 2px 12px rgba(0,0,0,.35));
-  transition: transform var(--lb-tr,1.2s) cubic-bezier(0.4,0,0.2,1),
-              height var(--lb-tr,1.2s) cubic-bezier(0.4,0,0.2,1);
-  will-change: height, transform;
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: black;
+  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Top bar: stick to top, height collapses by --lb-open */
 .lb-top {
-  position: absolute;
-  left: 0; right: 0; top: 0;
-  height: calc(var(--lb-size, 32svh) * (1 - var(--lb-open, 0)));
+  top: 0;
+  transform: translateY(calc(-100% * var(--lb-open)));
 }
 
-/* Bottom bar: stick to bottom, same formula */
 .lb-bottom {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: calc(var(--lb-size, 32svh) * (1 - var(--lb-open, 0)));
+  bottom: 0;
+  transform: translateY(calc(100% * var(--lb-open)));
 }
 
 /* Hero headline animations */

@@ -77,7 +77,67 @@ export const heroProgress = (heroEl: HTMLElement): number => {
   return Math.min(1, progress);
 };
 
-// SCROLL LOCK/UNLOCK
+/* ===== Fixed-body scroll lock (desktop + iOS Safari safe) ===== */
+
+let __lockScrollY = 0;
+let __lockActive = false;
+const __prevent = (e: Event) => { e.preventDefault(); };
+
+export function lockScrollUntilIntroEnds() {
+  if (__lockActive) return;
+  __lockActive = true;
+
+  // Capture current scroll position
+  __lockScrollY = window.scrollY || window.pageYOffset || 0;
+
+  // Hard lock: fixed body + no overscroll chain
+  const docEl = document.documentElement;
+  docEl.classList.add('is-locked');
+  docEl.style.overscrollBehavior = 'none';
+
+  const body = document.body;
+  body.classList.add('is-locked');
+  body.style.position = 'fixed';
+  body.style.top = `-${__lockScrollY}px`;
+  body.style.left = '0';
+  body.style.right = '0';
+  body.style.width = '100%';
+  body.style.overflow = 'hidden';
+  body.style.touchAction = 'none'; // Safari 16+
+
+  // Block gestures while locked (must be non-passive)
+  window.addEventListener('touchmove', __prevent, { passive: false });
+  window.addEventListener('wheel', __prevent, { passive: false });
+  window.addEventListener('touchstart', __prevent, { passive: false });
+}
+
+export function unlockScrollAfterIntro() {
+  if (!__lockActive) return;
+  __lockActive = false;
+
+  window.removeEventListener('touchmove', __prevent as any);
+  window.removeEventListener('wheel', __prevent as any);
+  window.removeEventListener('touchstart', __prevent as any);
+
+  const docEl = document.documentElement;
+  docEl.classList.remove('is-locked');
+  docEl.style.overscrollBehavior = '';
+
+  const body = document.body;
+  body.classList.remove('is-locked');
+  body.style.position = '';
+  body.style.top = '';
+  body.style.left = '';
+  body.style.right = '';
+  body.style.width = '';
+  body.style.overflow = '';
+  body.style.touchAction = '';
+
+  // Restore scroll position
+  window.scrollTo(0, __lockScrollY);
+}
+
+// LEGACY FUNCTIONS KEPT FOR COMPATIBILITY
 export const lockScroll = (): void => {
   document.body.classList.add('scroll-locked');
 };

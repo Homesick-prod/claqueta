@@ -21,13 +21,29 @@ import {
   FileText,
   MapPin,
   Clock,
-  Film
+  Film,
+  Palette,
+  Image,
+  Building2,
+  Video,
+  Clapperboard,
+  Megaphone,
+  Layout,
+  Wallet,
+  StickyNote,
+  Package,
+  BarChart3,
+  DollarSign,
+  Target,
+  Layers,
+  Settings,
+  Sparkles
 } from 'lucide-react';
 import { 
   useMounted,
   buildStars,
-  lockScroll,
-  unlockScroll,
+  lockScrollUntilIntroEnds,
+  unlockScrollAfterIntro,
   observe,
   usePointerAura,
   whipBlur,
@@ -47,26 +63,40 @@ interface Star {
   dy: number;
 }
 
-// Icon mapping for features
-const featureIcons = {
-  script_imports: FileText,
-  script_breakdown: FileText,
-  moodboard: Camera,
-  locations: MapPin,
-  shotlist: Camera,
-  stripboard: Calendar,
-  calendar: Calendar,
-  contacts: Users,
-  tasks: CheckCircle2,
-  budget: FileText,
-  notes: FileText,
-  callsheets: Clock,
-  schedule_daily: Clock,
-  continuity: Camera,
-  dailies: Play,
-  deliverables: CheckCircle2,
-  reports: FileText
+
+// 🔒 LOCKED display-name → icon component (no regex/slug)
+type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
+
+const FEATURE_NAME_TO_ICON: Record<string, IconType> = {
+  // Pre-production
+  "Script & Imports": FileText,
+  "AI Script Breakdown": Sparkles,
+  "Moodboard / Storyboard": Palette,
+  "Locations & Floor plan": Building2,
+  "Shotlist": Video,
+  "Stripboard / Shooting schedule": Layout,
+  "Calendar": Calendar,
+  "Contacts & Roles": Users,
+  "Tasks / Kanban": CheckCircle2,
+  "Budget / Equipment": DollarSign,
+  "Notes / Risks": StickyNote,
+
+  // Production
+  "Call sheets": Megaphone,
+  "Daily schedule / Unit move": Clock,
+  "Shot progress / Continuity": Layers,
+  "Dailies links": Video,
+
+  // Wrap
+  "Deliverables checklist": Package,
+  "Reports & Post handoff": BarChart3,
 };
+
+// ตัวช่วยสั้นๆ (fallback เป็น FileText)
+function resolveIconByName(name: string): IconType {
+  return FEATURE_NAME_TO_ICON[name] ?? FileText;
+}
+
 
 // Starfield component with hydration safety
 const Starfield = () => {
@@ -226,10 +256,12 @@ export default function LandingPage() {
   useEffect(() => {
     if (!mounted) return;
 
+    // Lock immediately when page mounts (before intro anim starts)
+    lockScrollUntilIntroEnds();
+
     // T0: base bg only, bars retracted, scroll locked
     document.documentElement.style.setProperty('--heroEpicOpacity', '0');
     document.documentElement.style.setProperty('--lb-open', '1');
-    lockScroll();
 
     // T1 (~900ms): hero epic fades in
     setTimeout(() => {
@@ -245,20 +277,22 @@ export default function LandingPage() {
     // Then unlock scroll
     setTimeout(() => {
       setUnlocked(true);
-      unlockScroll();
     }, 4000);
   }, [mounted]);
 
-  // Start realtime loop after unlock
+  // Start realtime loop and unlock after intro
   useEffect(() => {
     if (!unlocked) return;
     const el = heroRef.current;
     if (!el) return;
 
-    // kill long transitions for live scroll
+    // kill intro easing for live response
     const root = document.documentElement;
-    root.style.setProperty('--lb-tr', '0s');      // or '120ms'
-    root.style.setProperty('--hero-tr', '0s');    // or '120ms'
+    root.style.setProperty('--lb-tr', '0s');
+    root.style.setProperty('--hero-tr', '0s');
+
+    // Release the scroll lock now
+    unlockScrollAfterIntro();
 
     const stop = startRealtimeHeroLoop(el, (p) => {
       // realtime progress each frame
@@ -425,9 +459,9 @@ export default function LandingPage() {
       {/* === END: DO NOT MODIFY === */}
 
       {/* Content sections */}
-      <div className="relative z-30 bg-[var(--page-bg)]">
+      <div className="relative z-30 pt-[150px]">
         {/* Features Grid */}
-        <section id="features" ref={nextHeaderRef} className="py-20 px-4">
+        <section id="features" ref={nextHeaderRef} className="py-20 px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Built for Real Production</h2>
@@ -442,19 +476,22 @@ export default function LandingPage() {
                 <p className="text-[var(--text-muted)] mb-8">{block.blurb}</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {block.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="card p-6">
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-lg bg-[var(--brand)]/10 flex items-center justify-center flex-shrink-0">
-                          <FileText className="w-6 h-6 text-[var(--brand)]" />
+                  {block.items.map((item, itemIndex) => {
+                    const FeatureIcon = resolveIconByName(item.name);
+                    return (
+                      <div key={itemIndex} className="card p-6">
+                        <div className="flex items-start items-center gap-4 mb-4">
+                          <div className="w-12 h-12 rounded-lg bg-[var(--brand)]/10 flex items-center justify-center flex-shrink-0">
+                            <FeatureIcon className="w-6 h-6 text-[var(--brand)]" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-semibold">{item.name}</h4>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-semibold mb-2">{item.name}</h4>
-                        </div>
+                        <p className="text-sm text-[var(--text-muted)]">{item.desc}</p>
                       </div>
-                      <p className="text-sm text-[var(--text-muted)]">{item.desc}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

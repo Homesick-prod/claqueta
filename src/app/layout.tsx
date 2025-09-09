@@ -5,7 +5,7 @@ import '../styles/tw.css';
 
 // Remove Inter from body usage - Montserrat will be applied site-wide
 const inter = Inter({ subsets: ['latin'] });
-const montserrat = Montserrat({ 
+const montserrat = Montserrat({
   subsets: ['latin'],
   variable: '--font-montserrat',
   display: 'swap'
@@ -24,6 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${montserrat.variable}`}>
       <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
         <ThemeScript />
       </head>
       <body className={`${montserrat.className} antialiased bg-[var(--page-bg)] text-[var(--text)]`}>

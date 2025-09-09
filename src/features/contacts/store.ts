@@ -54,6 +54,7 @@ export function saveDirectory(dir: ProjectDirectory): void {
 
 /**
  * Ensure directory is bootstrapped with defaults if missing
+ * Merges new seed data without removing existing custom entries
  */
 export function ensureBootstrapped(projectId: string): ProjectDirectory {
   if (typeof window === 'undefined') {
@@ -69,7 +70,7 @@ export function ensureBootstrapped(projectId: string): ProjectDirectory {
   let dir = loadDirectory(projectId);
   
   if (!dir) {
-    // Create new directory with defaults
+    // Create new directory with all defaults
     dir = {
       projectId,
       departments: [...DEFAULT_DEPARTMENTS],
@@ -78,32 +79,43 @@ export function ensureBootstrapped(projectId: string): ProjectDirectory {
       access: { projectId, policies: [] }
     };
   } else {
-    // Ensure access exists
+    // Migration: Ensure access field exists
     if (!dir.access) {
       dir.access = { projectId, policies: [] };
     }
     
-    // Add missing departments
-    DEFAULT_DEPARTMENTS.forEach(d => {
-      if (!dir!.departments.some(x => x.id === d.id)) {
-        dir!.departments.push(d);
+    // Migration: Add missing departments from seed
+    DEFAULT_DEPARTMENTS.forEach(seedDept => {
+      if (!dir!.departments.some(existingDept => existingDept.id === seedDept.id)) {
+        dir!.departments.push({ ...seedDept });
       }
     });
     
-    // Add missing positions
-    DEFAULT_POSITIONS.forEach(p => {
-      if (!dir!.positions.some(x => x.id === p.id)) {
-        dir!.positions.push(p);
+    // Migration: Add missing positions from seed
+    DEFAULT_POSITIONS.forEach(seedPos => {
+      if (!dir!.positions.some(existingPos => existingPos.id === seedPos.id)) {
+        dir!.positions.push({ ...seedPos });
       }
     });
     
-    // Ensure all departments have numeric order
-    dir.departments = dir.departments.map((d, i) => ({
-      ...d,
-      order: typeof d.order === 'number' ? d.order : i
-    }));
+    // Migration: Ensure all departments have numeric order field
+    dir.departments = dir.departments.map((dept, index) => {
+      // If department has a valid order, keep it
+      if (typeof dept.order === 'number') {
+        return dept;
+      }
+      
+      // Otherwise, try to find the order from DEFAULT_DEPARTMENTS
+      const seedDept = DEFAULT_DEPARTMENTS.find(d => d.id === dept.id);
+      if (seedDept) {
+        return { ...dept, order: seedDept.order };
+      }
+      
+      // Fallback: use index + 1000 to put custom departments at the end
+      return { ...dept, order: 1000 + index };
+    });
     
-    // Sort departments by order
+    // Sort departments by order for consistent display
     dir.departments.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
   }
   
@@ -118,7 +130,7 @@ export function ensureBootstrapped(projectId: string): ProjectDirectory {
       isPrimaryOwner: true
     };
     
-    // Try to get saved owner info
+    // Try to get saved owner info from user preferences
     try {
       const storedMe = localStorage.getItem('claqueta:me');
       if (storedMe) {
@@ -127,13 +139,27 @@ export function ensureBootstrapped(projectId: string): ProjectDirectory {
         if (parsed.email) primaryOwner.email = parsed.email;
       }
     } catch {
-      // Use defaults
+      // Use defaults if parse fails
     }
     
     dir.contacts = [primaryOwner];
+  } else {
+    // Migration: Ensure at least one contact is marked as primary owner
+    const hasPrimaryOwner = dir.contacts.some(c => c.isPrimaryOwner);
+    if (!hasPrimaryOwner) {
+      // Find first owner or first contact
+      const firstOwner = dir.contacts.find(c => c.role === 'OWNER');
+      if (firstOwner) {
+        firstOwner.isPrimaryOwner = true;
+      } else if (dir.contacts.length > 0) {
+        // No owners at all? Make first contact an owner and primary
+        dir.contacts[0].role = 'OWNER';
+        dir.contacts[0].isPrimaryOwner = true;
+      }
+    }
   }
   
-  // Save bootstrapped directory
+  // Save the bootstrapped/migrated directory
   saveDirectory(dir);
   
   return dir;
