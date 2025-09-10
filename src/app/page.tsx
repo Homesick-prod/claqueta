@@ -2,13 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { 
+import {
   Play,
   Check,
-  X,
-  Mail,
-  Star,
-  Zap,
+  X,Mail,Star,Zap,
   Globe,
   Smartphone,
   Instagram,
@@ -37,9 +34,9 @@ import {
   Target,
   Layers,
   Settings,
-  Sparkles
+  Sparkles,Info, CheckCheck, MessageCircle
 } from 'lucide-react';
-import { 
+import {
   useMounted,
   buildStars,
   lockScrollUntilIntroEnds,
@@ -49,6 +46,7 @@ import {
   whipBlur,
   startRealtimeHeroLoop
 } from '@/lib/anim';
+import gsap from 'gsap';
 import { HERO, FEATURE_BLOCKS, PROGRESS, ROADMAP, CHANGELOG, FAQ, PRICING, LINE_DEMO } from './data';
 
 // Types
@@ -138,6 +136,7 @@ const Starfield = () => {
   );
 };
 
+
 // Join Waitlist Modal
 const JoinWaitlistModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [email, setEmail] = useState('');
@@ -147,7 +146,7 @@ const JoinWaitlistModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    
+
     setSubmitted(true);
     setTimeout(() => {
       onClose();
@@ -172,11 +171,11 @@ const JoinWaitlistModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <p className="text-[var(--text-muted)] mb-6">
                 {HERO.ctaSecondary.note}
               </p>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Email</label>
@@ -189,7 +188,7 @@ const JoinWaitlistModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Role</label>
                   <select
@@ -206,7 +205,7 @@ const JoinWaitlistModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                     <option value="other">Other..</option>
                   </select>
                 </div>
-                
+
                 <div className="flex gap-3">
                   <button type="submit" className="btn btn-primary flex-1">
                     Join Waitlist
@@ -341,7 +340,7 @@ export default function LandingPage() {
   const handleNavClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
     whipBlur('down');
-    
+
     setTimeout(() => {
       const element = document.getElementById(targetId);
       if (element) {
@@ -376,7 +375,7 @@ export default function LandingPage() {
         <nav ref={appbarRef} className="fixed top-0 left-0 right-0 z-50 appbar-glass h-16">
           <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
             <div className="text-xl font-bold text-[var(--brand)]">Claqueta</div>
-            
+
             {/* Desktop nav */}
             <div className="hidden md:flex items-center gap-6 text-sm">
               <a href="#features" onClick={(e) => handleNavClick(e, 'features')} className="hover:text-[var(--brand)] transition-colors">Features</a>
@@ -387,7 +386,7 @@ export default function LandingPage() {
               <a href="#changelog" onClick={(e) => handleNavClick(e, 'changelog')} className="hover:text-[var(--brand)] transition-colors">Changelog</a>
               <a href="#faq" onClick={(e) => handleNavClick(e, 'faq')} className="hover:text-[var(--brand)] transition-colors">FAQ</a>
             </div>
-            
+
             {/* CTAs */}
             <div className="flex items-center gap-3">
               <Link href="/hub" className="btn btn-primary btn-sm">Try the Beta</Link>
@@ -406,8 +405,8 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto text-center">
           {(() => {
             const STAGGER_START = 1.5;
-            const STAGGER_STEP  = 0.2;
-            const afterTitle    = STAGGER_START + HERO.headlineLines.length * STAGGER_STEP;
+            const STAGGER_STEP = 0.2;
+            const afterTitle = STAGGER_START + HERO.headlineLines.length * STAGGER_STEP;
 
             return (
               <>
@@ -474,7 +473,7 @@ export default function LandingPage() {
               <div key={blockIndex} className="mb-16">
                 <h3 className="text-2xl font-bold mb-4">{block.title}</h3>
                 <p className="text-[var(--text-muted)] mb-8">{block.blurb}</p>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {block.items.map((item, itemIndex) => {
                     const FeatureIcon = resolveIconByName(item.name);
@@ -505,7 +504,7 @@ export default function LandingPage() {
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Complete Production Workflow</h2>
               <p className="text-lg text-[var(--text-muted)]">Action → Output at every step</p>
             </div>
-            
+
             <div className="text-center">
               <p className="text-[var(--text-muted)]">Detailed workflow section coming soon...</p>
             </div>
@@ -535,7 +534,7 @@ export default function LandingPage() {
                 <Smartphone className="w-3 h-3" />
                 Simulated flow — not real messages
               </div>
-              
+
               {/* Messages */}
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {LINE_DEMO.map((msg, index) => (
@@ -543,11 +542,10 @@ export default function LandingPage() {
                     key={index}
                     className={`flex ${msg.from === 'claqueta' ? 'justify-start' : 'justify-end'}`}
                   >
-                    <div className={`max-w-[80%] rounded-2xl p-3 ${
-                      msg.from === 'claqueta' 
-                        ? 'bg-[var(--brand)]/20 text-[var(--text)]' 
+                    <div className={`max-w-[80%] rounded-2xl p-3 ${msg.from === 'claqueta'
+                        ? 'bg-[var(--brand)]/20 text-[var(--text)]'
                         : 'bg-[var(--accent)]/20 text-[var(--text)]'
-                    }`}>
+                      }`}>
                       <div className="text-sm">{msg.text}</div>
                       {msg.meta && (
                         <div className="text-xs text-[var(--text-muted)] mt-1">{msg.meta}</div>
@@ -575,22 +573,20 @@ export default function LandingPage() {
                     {timeframe === 'now' && <Zap className="w-5 h-5 text-[var(--accent)]" />}
                     {timeframe === 'next' && <Star className="w-5 h-5 text-[var(--brand)]" />}
                     {timeframe === 'later' && <Globe className="w-5 h-5 text-blue-400" />}
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      timeframe === 'now' ? 'bg-[var(--accent)]/20 text-[var(--accent)]' :
-                      timeframe === 'next' ? 'bg-[var(--brand)]/20 text-[var(--brand)]' :
-                      'bg-blue-500/20 text-blue-400'
-                    }`}>
+                    <span className={`px-2 py-1 text-xs rounded-full ${timeframe === 'now' ? 'bg-[var(--accent)]/20 text-[var(--accent)]' :
+                        timeframe === 'next' ? 'bg-[var(--brand)]/20 text-[var(--brand)]' :
+                          'bg-blue-500/20 text-blue-400'
+                      }`}>
                       {timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
                     </span>
                   </h3>
                   <ul className="space-y-3">
                     {items.map((item) => (
                       <li key={item} className="flex items-start gap-2">
-                        <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                          timeframe === 'now' ? 'bg-[var(--accent)]' :
-                          timeframe === 'next' ? 'bg-[var(--brand)]' :
-                          'bg-blue-400'
-                        }`} />
+                        <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${timeframe === 'now' ? 'bg-[var(--accent)]' :
+                            timeframe === 'next' ? 'bg-[var(--brand)]' :
+                              'bg-blue-400'
+                          }`} />
                         <span className="text-[var(--text-muted)] text-sm">{item}</span>
                       </li>
                     ))}
@@ -616,17 +612,16 @@ export default function LandingPage() {
                 <div key={item.name} className="card p-6">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold">{item.name}</h3>
-                    <div className={`status-pill-fixed text-center text-xs px-2 py-1 rounded-full ${
-                      item.status === 'shipped' ? 'bg-green-500/20 text-green-400' :
-                      item.status === 'in_progress' ? 'bg-[var(--accent)]/20 text-[var(--accent)]' :
-                      'bg-blue-500/20 text-blue-400'
-                    }`}>
-                      {item.status === 'shipped' ? 'Shipped' : 
-                       item.status === 'in_progress' ? 'In Progress' : 'Planned'}
+                    <div className={`status-pill-fixed text-center text-xs px-2 py-1 rounded-full ${item.status === 'shipped' ? 'bg-green-500/20 text-green-400' :
+                        item.status === 'in_progress' ? 'bg-[var(--accent)]/20 text-[var(--accent)]' :
+                          'bg-blue-500/20 text-blue-400'
+                      }`}>
+                      {item.status === 'shipped' ? 'Shipped' :
+                        item.status === 'in_progress' ? 'In Progress' : 'Planned'}
                     </div>
                   </div>
                   <div className="w-full h-2 bg-[var(--neutral-700)] rounded-full mb-3 overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-[var(--brand)] rounded-full transition-all duration-1000"
                       style={{ width: `${item.percent}%` }}
                     />
@@ -656,15 +651,13 @@ export default function LandingPage() {
               {CHANGELOG.map((entry) => (
                 <div key={entry.date} className="card p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-3 h-3 rounded-full ${
-                      entry.type === 'major' ? 'bg-green-500' : 'bg-orange-500'
-                    }`} />
+                    <div className={`w-3 h-3 rounded-full ${entry.type === 'major' ? 'bg-green-500' : 'bg-orange-500'
+                      }`} />
                     <span className="font-mono text-sm text-[var(--text-muted)]">{entry.date}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      entry.type === 'major' 
-                        ? 'bg-green-500/20 text-green-400' 
+                    <span className={`text-xs px-2 py-1 rounded-full ${entry.type === 'major'
+                        ? 'bg-green-500/20 text-green-400'
                         : 'bg-orange-500/20 text-orange-400'
-                    }`}>
+                      }`}>
                       {entry.type === 'major' ? 'Major' : 'Minor'}
                     </span>
                   </div>
@@ -764,9 +757,9 @@ export default function LandingPage() {
       </div>
 
       {/* Join Waitlist Modal */}
-      <JoinWaitlistModal 
-        isOpen={showWaitlistModal} 
-        onClose={() => setShowWaitlistModal(false)} 
+      <JoinWaitlistModal
+        isOpen={showWaitlistModal}
+        onClose={() => setShowWaitlistModal(false)}
       />
     </div>
   );
