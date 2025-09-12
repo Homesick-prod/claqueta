@@ -333,6 +333,51 @@ export default function LandingPage() {
     });
   }, [appbarVisible]);
 
+  // REVEAL ANIMATION SYSTEM
+  useEffect(() => {
+    if (!mounted) return;
+
+    // Select all elements with [data-reveal]
+    const revealElements = document.querySelectorAll('[data-reveal]');
+    
+    // Assign incremental --i to children inside any group marked data-stagger
+    document.querySelectorAll('[data-stagger]').forEach(staggerGroup => {
+      const children = staggerGroup.querySelectorAll('.reveal');
+      children.forEach((child, index) => {
+        if (!child.style.getPropertyValue('--i')) {
+          (child as HTMLElement).style.setProperty('--i', index.toString());
+        }
+      });
+    });
+
+    // Set up progress bar target widths
+    document.querySelectorAll('.progress-anim .bar').forEach(bar => {
+      const width = (bar as HTMLElement).style.width || bar.getAttribute('data-width') || '0%';
+      (bar as HTMLElement).style.setProperty('--target-width', width);
+    });
+
+    // Create intersection observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      rootMargin: '0px 0px -8% 0px',
+      threshold: 0.12
+    });
+
+    // Observe all reveal elements
+    revealElements.forEach(el => observer.observe(el));
+
+    // Cleanup
+    return () => {
+      observer.disconnect();
+    };
+  }, [mounted]);
+
   // Pointer aura + tap ripple + whip-tilt motion blur
   usePointerAura();
 
@@ -459,12 +504,12 @@ export default function LandingPage() {
 
       {/* Content sections */}
       <div className="relative z-30 pt-[150px]">
-        {/* Features Grid */}
+        {/* Built for Real Production intro */}
         <section id="features" ref={nextHeaderRef} className="py-20 px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Built for Real Production</h2>
-              <p className="text-lg text-[var(--text-muted)] max-w-2xl mx-auto">
+              <h2 className="reveal text-3xl md:text-4xl font-bold mb-4" data-reveal="up">Built for Real Production</h2>
+              <p className="reveal text-lg text-[var(--text-muted)] max-w-2xl mx-auto" data-reveal="up" style={{'--i': 1}}>
                 Every feature serves actual filmmaking workflows. No fluff, no fake promises.
               </p>
             </div>
@@ -474,11 +519,11 @@ export default function LandingPage() {
                 <h3 className="text-2xl font-bold mb-4">{block.title}</h3>
                 <p className="text-[var(--text-muted)] mb-8">{block.blurb}</p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-stagger>
                   {block.items.map((item, itemIndex) => {
                     const FeatureIcon = resolveIconByName(item.name);
                     return (
-                      <div key={itemIndex} className="card p-6">
+                      <div key={itemIndex} className="card p-6 reveal" data-reveal="up" style={{'--i': itemIndex}}>
                         <div className="flex items-start items-center gap-4 mb-4">
                           <div className="w-12 h-12 rounded-lg bg-[var(--brand)]/10 flex items-center justify-center flex-shrink-0">
                             <FeatureIcon className="w-6 h-6 text-[var(--brand)]" />
@@ -501,8 +546,8 @@ export default function LandingPage() {
         <section id="workflow" className="py-20 px-4 bg-[var(--surface)]/30">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Complete Production Workflow</h2>
-              <p className="text-lg text-[var(--text-muted)]">Action → Output at every step</p>
+              <h2 className="reveal text-3xl md:text-4xl font-bold mb-4" data-reveal="up">Complete Production Workflow</h2>
+              <p className="reveal text-lg text-[var(--text-muted)]" data-reveal="up" style={{'--i': 1}}>Action → Output at every step</p>
             </div>
 
             <div className="text-center">
@@ -515,8 +560,8 @@ export default function LandingPage() {
         <section id="line" className="py-20 px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">LINE Integration</h2>
-              <p className="text-lg text-[var(--text-muted)]">Two-way communication with your crew</p>
+              <h2 className="reveal text-3xl md:text-4xl font-bold mb-4" data-reveal="up">LINE Integration</h2>
+              <p className="reveal text-lg text-[var(--text-muted)]" data-reveal="up" style={{'--i': 1}}>Two-way communication with your crew</p>
             </div>
 
             <div className="card rounded-[2rem] p-6 border-2 border-[var(--border)] relative mx-auto max-w-sm">
@@ -536,11 +581,13 @@ export default function LandingPage() {
               </div>
 
               {/* Messages */}
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div className="space-y-4 max-h-96 overflow-y-auto" data-stagger>
                 {LINE_DEMO.map((msg, index) => (
                   <div
                     key={index}
-                    className={`flex ${msg.from === 'claqueta' ? 'justify-start' : 'justify-end'}`}
+                    className={`reveal flex ${msg.from === 'claqueta' ? 'justify-start' : 'justify-end'}`}
+                    data-reveal={msg.from === 'claqueta' ? 'left' : 'right'}
+                    style={{'--i': index}}
                   >
                     <div className={`max-w-[80%] rounded-2xl p-3 ${msg.from === 'claqueta'
                         ? 'bg-[var(--brand)]/20 text-[var(--text)]'
@@ -562,13 +609,13 @@ export default function LandingPage() {
         <section id="roadmap" className="py-20 px-4 bg-[var(--surface)]/30">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Development Roadmap</h2>
-              <p className="text-lg text-[var(--text-muted)]">What's shipping when</p>
+              <h2 className="reveal text-3xl md:text-4xl font-bold mb-4" data-reveal="up">Development Roadmap</h2>
+              <p className="reveal text-lg text-[var(--text-muted)]" data-reveal="up" style={{'--i': 1}}>What's shipping when</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {Object.entries(ROADMAP).map(([timeframe, items]) => (
-                <div key={timeframe} className="card p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8" data-stagger>
+              {Object.entries(ROADMAP).map(([timeframe, items], index) => (
+                <div key={timeframe} className="card p-6 reveal" data-reveal="up" style={{'--i': index}}>
                   <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     {timeframe === 'now' && <Zap className="w-5 h-5 text-[var(--accent)]" />}
                     {timeframe === 'next' && <Star className="w-5 h-5 text-[var(--brand)]" />}
@@ -601,15 +648,15 @@ export default function LandingPage() {
         <section id="progress" className="py-20 px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Live Progress & Status</h2>
-              <p className="text-lg text-[var(--text-muted)]">
+              <h2 className="reveal text-3xl md:text-4xl font-bold mb-4" data-reveal="up">Live Progress & Status</h2>
+              <p className="reveal text-lg text-[var(--text-muted)]" data-reveal="up" style={{'--i': 1}}>
                 Real development progress, updated regularly
               </p>
             </div>
 
-            <div className="space-y-6">
-              {PROGRESS.map((item) => (
-                <div key={item.name} className="card p-6">
+            <div className="space-y-6" data-stagger>
+              {PROGRESS.map((item, index) => (
+                <div key={item.name} className="card p-6 reveal progress-anim" data-reveal="up" style={{'--i': index}}>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold">{item.name}</h3>
                     <div className={`status-pill-fixed text-center text-xs px-2 py-1 rounded-full ${item.status === 'shipped' ? 'bg-green-500/20 text-green-400' :
@@ -622,7 +669,7 @@ export default function LandingPage() {
                   </div>
                   <div className="w-full h-2 bg-[var(--neutral-700)] rounded-full mb-3 overflow-hidden">
                     <div
-                      className="h-full bg-[var(--brand)] rounded-full transition-all duration-1000"
+                      className="bar h-full bg-[var(--brand)] rounded-full transition-all duration-1000"
                       style={{ width: `${item.percent}%` }}
                     />
                   </div>
@@ -643,13 +690,13 @@ export default function LandingPage() {
         <section id="changelog" className="py-20 px-4 bg-[var(--surface)]/30">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Changelog</h2>
-              <p className="text-lg text-[var(--text-muted)]">Recent updates and improvements</p>
+              <h2 className="reveal text-3xl md:text-4xl font-bold mb-4" data-reveal="up">Changelog</h2>
+              <p className="reveal text-lg text-[var(--text-muted)]" data-reveal="up" style={{'--i': 1}}>Recent updates and improvements</p>
             </div>
 
-            <div className="space-y-6">
-              {CHANGELOG.map((entry) => (
-                <div key={entry.date} className="card p-6">
+            <div className="space-y-6" data-stagger>
+              {CHANGELOG.map((entry, index) => (
+                <div key={entry.date} className="card p-6 reveal" data-reveal="up" style={{'--i': index}}>
                   <div className="flex items-center gap-3 mb-3">
                     <div className={`w-3 h-3 rounded-full ${entry.type === 'major' ? 'bg-green-500' : 'bg-orange-500'
                       }`} />
@@ -672,13 +719,13 @@ export default function LandingPage() {
         <section id="faq" className="py-20 px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
-              <p className="text-lg text-[var(--text-muted)]">Everything you need to know about Claqueta</p>
+              <h2 className="reveal text-3xl md:text-4xl font-bold mb-4" data-reveal="up">Frequently Asked Questions</h2>
+              <p className="reveal text-lg text-[var(--text-muted)]" data-reveal="up" style={{'--i': 1}}>Everything you need to know about Claqueta</p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6" data-stagger>
               {FAQ.map((faq, index) => (
-                <div key={index} className="card p-6">
+                <div key={index} className="card p-6 reveal" data-reveal="up" style={{'--i': index}}>
                   <h3 className="font-semibold mb-3 text-[var(--brand)]">{faq.q}</h3>
                   <p className="text-[var(--text-muted)] text-sm">{faq.a}</p>
                 </div>
@@ -691,13 +738,13 @@ export default function LandingPage() {
         <section id="pricing" className="py-20 px-4 bg-[var(--surface)]/30">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Pricing</h2>
-              <p className="text-lg text-[var(--text-muted)]">Simple, transparent pricing</p>
+              <h2 className="reveal text-3xl md:text-4xl font-bold mb-4" data-reveal="up">Pricing</h2>
+              <p className="reveal text-lg text-[var(--text-muted)]" data-reveal="up" style={{'--i': 1}}>Simple, transparent pricing</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-stagger>
               {PRICING.map((plan, index) => (
-                <div key={index} className="card p-6 text-center">
+                <div key={index} className="card p-6 text-center reveal" data-reveal="up" style={{'--i': index}}>
                   <h3 className="font-semibold mb-2">{plan.tier}</h3>
                   <div className="text-2xl font-bold text-[var(--brand)] mb-2">{plan.price}</div>
                   <p className="text-xs text-[var(--text-muted)]">{plan.note}</p>
@@ -713,13 +760,13 @@ export default function LandingPage() {
             <div className="relative p-12 card overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[var(--brand)]/20 via-transparent to-[var(--accent)]/20" />
               <div className="relative">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                <h2 className="reveal text-3xl md:text-4xl font-bold mb-4" data-reveal="up" style={{'--i': 0}}>
                   If you make films, this is for you.
                 </h2>
-                <p className="text-lg text-[var(--text-muted)] mb-8">
+                <p className="reveal text-lg text-[var(--text-muted)] mb-8" data-reveal="up" style={{'--i': 1}}>
                   Join the beta and help shape the future of film production tools.
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div className="reveal flex flex-col sm:flex-row items-center justify-center gap-4" data-reveal="up" style={{'--i': 2}}>
                   <Link href="/hub" className="btn btn-primary btn-lg">
                     Try the Beta
                   </Link>
